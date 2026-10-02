@@ -2,4 +2,106 @@
 \section{Evaluation of TANGO}
 \label{sec:evaluation-of-tango}
 
-% TODO: Write this section.
+% 总领段提纲：仿照 ELORA 用两句交代评估路线；先比较不同模型与 Multi-SLO 工作负载下的总体性能，再验证两个调度模块、步耗时模型及调度开销。
+In this section, we first evaluate the SLO attainment and goodput of \tango{} across different models and multi-SLO workloads.
+We then investigate the effectiveness of its two scheduling components, validate the step-time model, and analyze scheduling overhead.
+
+\subsection{Evaluation Setup}
+\label{subsec:evaluation-setup}
+
+% Setup 第1段提纲：逐句沿用 ELORA 的组织顺序：平台表、工作负载所在章节、模型及简称、按参数规模部署所需 GPU 数、单卡显存，最后用四类 SLO 对应 ELORA 的 LoRA 数量变化；未确认的 GPU 数量标红。
+Table~\ref{tab:motivation-setup} shows our experimental platform.
+The chatbot, mathematical-reasoning, and software-agent workloads are described in Section~\ref{subsec:motivation-trace}.
+We use Llama-3.1-8B, Qwen3-14B, and Qwen3-32B (8B, 14B, and 32B for short) as base models.
+Based on the parameter size, we use 1, 2, and 4 NVIDIA RTX 6000 Ada GPUs to deploy them, respectively.
+Each RTX 6000 Ada has 48\,GB of GPU memory.
+Moreover, we use four SLO classes (TTFT-prioritized, TPOT-prioritized, balanced, and relaxed) for each model.
+
+% Setup 第2段提纲：仿照 ELORA 在平台与模型段后直接介绍基线；先列出 vLLM、SOLA 和 JITServe 并说明其调度机制，再交代 SOLA 源码未公开、JITServe 版本不同，因此在统一的 vLLM 0.17.0 上实现或迁移其调度机制；未确认的参数配置标红。
+We use the LLM serving systems vLLM, SOLA, and JITServe as baselines.
+vLLM employs FCFS admission and a fixed maximum per-step token budget, without differentiating request-specific TTFT and TPOT objectives.
+SOLA adjusts both request execution order and iteration workload according to request and system states to improve SLO attainment.
+JITServe estimates uncertain request characteristics and allocates serving bandwidth to individual requests, while grouping compatible requests to improve batching efficiency.
+Since SOLA's source code is not publicly available and JITServe uses a different vLLM version, we reimplement SOLA's scheduling mechanisms and port those of JITServe to vLLM 0.17.0.
+This allows all systems to be compared on the same vLLM runtime.
+
+% Setup 第3段提纲：仿照 ELORA 最后一段先列出评估指标，再分别给出定义；整体 SLO 达标率统计同时满足各自 TTFT 和 TPOT 目标的请求比例，goodput 统计每秒完成的此类请求数。
+Following prior works, we use overall SLO attainment and goodput as performance metrics.
+Overall SLO attainment is the percentage of all requests that satisfy both their TTFT and TPOT SLOs.
+Goodput measures the number of such requests completed per second.
+
+\subsection{SLO Attainment and Goodput}
+\label{subsec:slo-attainment-and-goodput}
+
+% 总体实验图：用户指定为单栏；图注仿照 ELORA，依次交代两个评估指标、TANGO 与三个基线，以及不同实验场景。
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/slo-attainment-and-goodput.pdf}
+  \caption{The overall SLO attainment and goodput of \tango{}, vLLM, SOLA, and JITServe in various scenarios.}
+  \label{fig:slo-attainment-and-goodput}
+\end{figure}
+
+% Evaluation B 第1段提纲：仿照 ELORA 先说明总体实验的指标与范围；覆盖三种工作负载和三种模型，各组合均采用对应 vLLM 的 1.2 倍 90\% 达标率发送率，所有系统使用相同请求、到达时间及 SLO，最后引出总体实验图。
+We first evaluate \tango{} on overall SLO attainment and goodput.
+Each workload is evaluated on the 8B, 14B, and 32B models.
+For each model--workload combination, we replay the trace at $1.2\lambda_{90}$, where $\lambda_{90}$ is the sending rate at which vLLM achieves 90\% SLO attainment for that combination.
+All systems use the same request sequence, arrival schedule, and SLO targets.
+Fig.~\ref{fig:slo-attainment-and-goodput} shows the results for all nine model--workload combinations.
+
+% Evaluation B 第2段提纲：仿照 ELORA 将达标率与 goodput 同时领先的结论融入总体结果；先给出九组实验的平均提升，再突出综合提升最大的 Qwen3-32B math 场景，汇报其绝对指标、相对三个基线的提升及跨基线平均值。达标率绝对增量用百分点，goodput 用倍数，不将 goodput 结论扩大为原始吞吐量结论。
+As observed, \tango{} achieves the highest overall SLO attainment and goodput in all test cases.
+Across the nine cases, the average increases in SLO attainment are 23.37\%, 21.52\%, and 15.48\% compared with vLLM, SOLA, and JITServe, respectively.
+The corresponding average goodput ratios are $1.52\times$, $1.47\times$, and $1.22\times$.
+The most pronounced combined improvement occurs in the Qwen3-32B mathematical-reasoning case, where \tango{} increases overall SLO attainment  by 42.40\%, 41.50\%, and 18.90\% over vLLM, SOLA, and JITServe, respectively, while the corresponding goodput ratios are $2.50\times$, $2.44\times$, and $1.20\times$.
+
+% Evaluation B 第3段提纲：对应 ELORA 的性能原因解释，联系本文已识别的排队和混合步干扰两类问题；说明 deadline 准入与条件抢占如何服务紧迫请求，预测步耗时如何控制 prefill 对 decode 的干扰；总体图只提供结果，模块贡献留给后续消融验证。
+These improvements are consistent with \tango{}'s joint control of request urgency and step duration.
+The dispatcher prioritizes earlier deadlines for admission and preempts a later-deadline running request when KV-cache allocation fails.
+The allocator uses predicted step time and active latency slack to bound the prefill work sharing a step with decode requests.
+This coordination addresses the TTFT violations from queueing and TPOT violations from mixed prefill/decode execution identified in Section~\ref{subsec:motivation-underlying-reasons}.
+
+\subsection{Effectiveness of Temporal Scheduling}
+\label{subsec:effectiveness-temporal-scheduling}
+
+% 消融实验图：单栏；图注仿照 ELORA，依次交代消融版本的 goodput 与整体 SLO 达标率、相对完整 TANGO 的归一化，以及柱形和曲线分别对应两个指标。
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/ablation_goodput_slo.pdf}
+  \caption{The goodput and overall SLO attainment of \tango{}'s variants normalized to \tango{}, represented by bars and curves, respectively.}
+  \label{fig:ablation-goodput-slo}
+\end{figure}
+
+% Evaluation C 第1段提纲：仿照 ELORA 先定义 temporal 消融版本 TANGO-WOT；关闭 dispatcher，恢复 vLLM 默认 FCFS 准入及默认抢占，保留 spatial allocator，其他实验条件沿用总体实验。
+In this subsection, we show the performance of \tango{}-WOT, a variant of \tango{} that disables temporal scheduling.
+It restores vLLM's default admission and preemption policies, including FCFS request admission, while retaining the \allocator{}.
+All other experimental conditions, including the nine model--workload combinations and sending rates, are kept the same as in Section~\ref{subsec:slo-attainment-and-goodput}.
+
+% Evaluation C 第2段提纲：仿照 ELORA 指出图中对应的绿色柱形与曲线；给出九组实验的平均相对降幅，再用 goodput 降幅最大的 8B math 场景说明 temporal 的作用。数据从提供的 PDF 矢量绘图坐标恢复；平均相对降幅为 100*(1-mean(variant/TANGO))，不是达标率的百分点差。
+The green bars and curves of Fig.~\ref{fig:ablation-goodput-slo} show the goodput and overall SLO attainment of \tango{}-WOT normalized to \tango{}.
+As observed, both metrics decrease in all nine cases, with average relative reductions of 20.31\% and 20.39\%, respectively.
+
+% Evaluation C 第3段提纲：解释 temporal 消融后紧迫请求无法获得更早准入，默认抢占也不比较活跃 deadline；spatial 能控制已选 batch 的步耗时，却无法修正等待队列的服务顺序，因此单独保留 spatial 不能恢复完整性能。
+Without phase-aware prioritization, FCFS can leave requests with tight TTFT targets waiting behind earlier requests with more latency slack.
+The default preemption policy also does not compare active deadlines when deciding which running request should yield KV-cache capacity.
+Although the retained allocator regulates the execution time of mixed batches, it cannot by itself give earlier admission to urgent waiting requests.
+Consequently, controlling step duration alone is insufficient to recover the SLO attainment and goodput of the complete system.
+
+\subsection{Effectiveness of Spatial Scheduling}
+\label{subsec:effectiveness-spatial-scheduling}
+
+% Evaluation D 第1段提纲：仿照 ELORA 定义 spatial 消融版本 TANGO-WOS；关闭模型引导的 token allocator，改用固定的每步最大 token 预算，保留 temporal 的 deadline 准入及条件抢占，实验条件与前一节一致。
+In this subsection, we show the performance of \tango{}-WOS, a variant of \tango{} that disables spatial scheduling.
+It replaces model-guided token allocation with a fixed maximum token budget per step, while retaining the \dispatcher{}.
+Thus, request admission and preemption still use phase-aware deadlines, and all other experimental conditions remain unchanged.
+
+% Evaluation D 第2段提纲：对应图中的蓝色柱形和曲线，汇报九组实验中 goodput 与整体达标率的平均相对降幅；补充 32B math 的具体归一化结果。平均值由图中九组比例计算，采用相对百分比，不使用百分点。
+The blue bars and curves of Fig.~\ref{fig:ablation-goodput-slo} show the goodput and overall SLO attainment of \tango{}-WOS normalized to \tango{}.
+Both metrics remain below those of \tango{} in every case, with average relative reductions of 13.19\% in goodput and 12.66\% in SLO attainment.
+
+
+% Evaluation D 第3段提纲：解释固定 token 上限不能约束不同组成及上下文长度下的混合步耗时，长 prefill 会推迟 decode 输出；temporal 负责选择请求，spatial 负责按预测时间决定同一步可执行的 prefill 工作量，两者共同提高达标率及 goodput。
+A fixed token budget does not provide a reliable bound on the duration of a mixed prefill/decode step.
+As batch composition and context lengths change, the same token count can incur different computation and KV-cache access costs.
+A long prefill chunk can therefore delay the next tokens of decode requests even when request admission follows deadline order.
+The model-guided allocator controls this interference by adjusting the prefill allocation to the active decode workload and remaining latency slack.
+These results show that deadline-aware request ordering and execution-time-aware token allocation make complementary contributions to serving performance.
