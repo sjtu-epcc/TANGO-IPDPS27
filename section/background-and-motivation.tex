@@ -97,7 +97,7 @@ All compared systems use the same request sequence, arrival schedule, and SLO ta
 \begin{table}[t]
   \renewcommand{\arraystretch}{1.05}
   \setlength{\tabcolsep}{3pt}
-  \caption{Experiment specifications.}
+  \caption{Experimental setup.}
   \label{tab:motivation-setup}
   \centering
   \scriptsize
@@ -123,7 +123,7 @@ All compared systems use the same request sequence, arrival schedule, and SLO ta
 
 \begin{table}[t]
   \centering
-  \caption{SLO attainment of vLLM with Qwen3-14B (TP${}={}$2) on the math workload at $1.2\lambda_{90}$. Joint attainment requires satisfying both the TTFT and TPOT objectives.}
+  \caption{SLO attainment of vLLM on the math workload.}
   \label{tab:fcfs-multi-slo-attainment}
   \scriptsize
   \setlength{\tabcolsep}{3pt}
@@ -172,7 +172,7 @@ Our investigation identifies two complementary causes of the low Multi-SLO attai
 \begin{figure}[!t]
   \centering
   \includegraphics[width=0.94\columnwidth]{figures/background-and-motivation/moti_queue_slo}
-  \caption{TTFT and pre-admission queueing time for the math workload over request indices 0--3,000 (inclusive) under FCFS at $1.2\lambda_{90}$, normalized by each request's TTFT SLO. Solid and dashed lines denote TTFT and queueing time, respectively; the dash-dotted line marks the SLO boundary. Strict TTFT and Strict TPOT correspond to the TTFT-prioritized and TPOT-prioritized classes, respectively.}
+  \caption{Normalized TTFT and queueing time under FCFS.}
   \label{fig:temporal-slo-ratio}
 \end{figure}
 
@@ -185,7 +185,10 @@ The first-token latency of request $r_i$ can be decomposed as
 where $W_i^{\mathrm{queue}}$ is the delay from arrival until the request is first admitted for prefill, and $L_i^{\mathrm{prefill}}$ is the remaining latency until its first token is produced.
 For a chunked prefill, $L_i^{\mathrm{prefill}}$ includes the execution and intervening scheduling delays of all prompt chunks after admission.
 
-Fig.~\ref{fig:temporal-slo-ratio} shows that the normalized queueing-time curve closely follows the TTFT curve in all four SLO classes, indicating that queueing dominates the first-token latency.
+Fig.~\ref{fig:temporal-slo-ratio} plots TTFT and queueing time for the first 3,001 math requests, normalized by each request's TTFT SLO.
+Solid and dashed lines denote TTFT and queueing time, respectively; the dash-dotted line marks the SLO boundary.
+The Strict TTFT and Strict TPOT panels correspond to the TTFT-prioritized and TPOT-prioritized classes, respectively.
+The normalized queueing-time curve closely follows the TTFT curve in all four SLO classes, indicating that queueing dominates the first-token latency.
 For TTFT-prioritized and balanced requests, the queueing delay frequently consumes most, or even all, of the TTFT budget before prefill completes.
 TPOT-prioritized and relaxed requests remain below the boundary because their looser TTFT objectives provide substantially more slack.
 The resulting TTFT violations therefore arise primarily from how waiting time is distributed among requests, rather than from a uniform shortage of prefill compute capacity.
@@ -198,7 +201,7 @@ Accounting for the remaining TTFT slack can redistribute queueing delay toward r
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\columnwidth]{figures/background-and-motivation/moti_token_heatmap}
-  \caption{Mean step time on Qwen3-14B with TP${}={}$2, averaged over 50 timed step measurements per configuration (5 rounds $\times$ 10 measurements), under different numbers of prefill and decode tokens. The blue outline fixes 2,048 decode tokens; the green outlines mark configurations with the same 4,096-token total. Gray cells exceed the maximum per-step token budget.}
+  \caption{Mean step time with different prefill and decode token counts.}
   \label{fig:spatial-pd-grid}
 \end{figure}
 
@@ -208,6 +211,7 @@ For an active decode request, the interval before its next token is determined b
 Reordering waiting requests alone cannot protect TPOT because a decode token may still share a step with a large prefill chunk.
 
 To quantify this interference, we vary the numbers of prefill tokens $p$ and decode tokens $d$ scheduled in the same step and measure the mean step time.
+Each configuration is measured on Qwen3-14B with TP${}={}$2 over 50 timed steps (5 rounds $\times$ 10 measurements); gray cells exceed the maximum per-step token budget.
 As highlighted by the blue outline in Fig.~\ref{fig:spatial-pd-grid}, when $d=2{,}048$, increasing $p$ from 0 to 2,048 increases the mean step time from 329\,ms to 759\,ms.
 Every active decode request must wait for the longer step to complete before receiving its next token, directly increasing its TPOT.
 

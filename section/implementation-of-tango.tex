@@ -2,4 +2,33 @@
 \section{Implementation of TANGO}
 \label{sec:implementation-of-tango}
 
-% TODO: Write this section.
+% 第1段提纲：仿照 ELORA 先交代底层引擎与集成方式；TANGO 扩展 vLLM 的请求入口和 CPU 调度循环，经原有接口交付 batch，复用执行与并行机制。
+\tango{} is implemented on top of vLLM 0.17.0 by extending its request admission path and scheduler.
+The dispatcher and allocator run in the CPU-side scheduling loop and produce per-request token allocations for each engine step.
+The resulting batch is passed to vLLM through its existing scheduler--executor interface, reusing continuous batching, chunked prefill, PagedAttention-based KV-cache management, tensor parallelism, sampling, and streaming output.
+
+% 第2段提纲：说明 SLO 与运行状态如何进入系统、存放及更新；缺失 SLO 视为无该约束，首 token 和后续 token 的反馈用于切换阶段及维护 deadline。
+\textbf{SLO Metadata and Runtime State:}
+We extend request admission to carry two optional SLO fields, TTFT and TPOT, in milliseconds.
+A missing SLO is treated as an absent constraint, allowing best-effort requests to use the same serving path.
+Alongside these fields, the scheduler maintains each request's arrival timestamp, prompt length, computed-token progress, output-token count, and latest output timestamp in host memory.
+These fields are updated together with vLLM's request state after each engine step.
+The first emitted token activates the TPOT objective, and subsequent token timestamps advance the next-token deadline.
+
+% 第3段提纲：说明 dispatcher 接入等待队列和 KV 分配失败路径的位置；按 4A 的优先级排序，严格比较 deadline 后调用抢占，并维护 RUNNING/WAITING 转换与原始 SLO 状态。
+\textbf{Queue and Preemption Hooks:}
+We add queue and preemption hooks to vLLM's waiting-request admission path.
+The queue hook applies the phase-aware priority and tie-breaking rules in Section~\ref{sec:deadline-aware-request-dispatcher}.
+On KV-cache allocation failure, the preemption hook selects the running request with the latest deadline and requires the waiting request's deadline to be strictly earlier.
+If permitted, vLLM reclaims the victim's KV blocks, moves it from \texttt{RUNNING} to \texttt{WAITING}, and retries allocation.
+The victim keeps its SLOs, output progress, and the timestamps used to construct its deadline.
+
+% 第4段提纲：说明 allocator 的离线系数拟合与逐轮调用；从 running 状态提取 decode 工作量和 deadline，候选 prefill 逐块更新累计统计，同时执行时间与 token 上限并提交分配结果。
+\textbf{Per-Step Token Allocation:}
+We fit the step-time model coefficients from offline profiling for the deployed model and hardware configuration.
+At each iteration boundary, the allocator summarizes the active decode workload and collects its next-token deadlines from scheduler-maintained state.
+It then establishes the time budget using the percentile policy in Section~\ref{sec:step-time-model-guided-token-allocator}.
+As the scheduler processes ongoing prefill requests and admits waiting requests, their chunks share this budget and the engine's maximum per-step token capacity.
+The allocator updates the cumulative prefill token count and attention work after each allocation, using the candidate's chunk length and already-computed context length.
+A chunk that exceeds either limit is truncated to its largest feasible size; unallocated tokens remain for later steps.
+The resulting token allocations are forwarded to the executor through the standard scheduling output.
