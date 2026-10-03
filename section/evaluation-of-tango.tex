@@ -4,7 +4,7 @@
 
 % 总领段提纲：仿照 ELORA 用两句交代评估路线；先比较不同模型与 Multi-SLO 工作负载下的总体性能，再验证两个调度模块、步耗时模型及调度开销。
 In this section, we first evaluate the SLO attainment and goodput of \tango{} across different models and multi-SLO workloads.
-We then investigate the effectiveness of its two scheduling components, validate the step-time model, and analyze scheduling overhead.
+We then investigate the effectiveness of its two scheduling components, validate the step-time model, examine sensitivity to sending rates and SLO settings, and analyze scheduling overhead.
 
 \subsection{Evaluation Setup}
 \label{subsec:evaluation-setup}
@@ -105,3 +105,112 @@ As batch composition and context lengths change, the same token count can incur 
 A long prefill chunk can therefore delay the next tokens of decode requests even when request admission follows deadline order.
 The model-guided allocator controls this interference by adjusting the prefill allocation to the active decode workload and remaining latency slack.
 These results show that deadline-aware request ordering and execution-time-aware token allocation make complementary contributions to serving performance.
+
+\subsection{Accuracy of the Step-Time Model}
+\label{subsec:accuracy-step-time-model}
+
+% Evaluation E 实验说明：仿照 ELORA 先交代验证对象与实验范围；使用各部署配置的拟合系数，覆盖三类工作负载、不同负载及 decode-only/mixed 步，并给出样本数与误差定义。
+% TODO: 确认系数拟合与准确性验证的数据划分；当前资料未说明二者是否独立，因此此处不宣称 held-out 验证。
+In this subsection, we evaluate the prediction accuracy of the step-time model in Eq.~\ref{eq:step-time-model}.
+For each deployment configuration, we compare the predicted duration $\widehat{L}$ with the measured duration $L$ using its fitted coefficients.
+The evaluated steps cover decode-only and mixed execution across the three workloads at low and high loads.
+We evaluate 32,542, 30,988, and 21,952 steps for the 8B, 14B, and 32B models, respectively.
+We measure prediction error as the absolute percentage error $100\lvert\widehat{L}-L\rvert/L$.
+
+% 预测与实测对照图：单栏；虚线为完全准确的预测，灰色带为相对实测值的正负 10\% 范围。
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/model_accuracy_parity.pdf}
+  \caption{Predicted versus measured step time for the three models. The dashed line denotes equal predicted and measured times. Color represents the number of steps per hexagon on a logarithmic scale.}
+  \label{fig:model-accuracy-parity}
+\end{figure}
+
+% 误差分布图：半个单栏宽度；图中 5\% 和 10\% 为固定参考线，具体累计比例在正文给出。
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{figures/evaluation/model_accuracy_error_distribution.pdf}
+  \caption{CDF of the step-time model's absolute percentage error for the three models.}
+  \label{fig:model-accuracy-error-distribution}
+\end{figure}
+
+% Evaluation E 结果分析：合并为一段，先讲 Fig. 10 的拟合效果，再讲 Fig. 11 的误差分布及量化指标；数值按 8B、14B、32B 的顺序给出。
+Fig.~\ref{fig:model-accuracy-parity} compares predicted and measured step times across the three models.
+As observed, the predictions closely match the measured durations across different models and step-time ranges, showing that the step-time model provides a good fit.
+Fig.~\ref{fig:model-accuracy-error-distribution} shows the CDFs of absolute percentage error, with the errors concentrated at small values.
+The mean absolute percentage errors (MAPEs) are 1.83\%, 1.62\%, and 1.70\% for the 8B, 14B, and 32B models, respectively.
+The fractions of steps with errors below 5\% are 90.59\%, 93.70\%, and 91.38\%, respectively.
+At 10\%, the corresponding fractions reach 98.68\%, 99.05\%, and 98.36\%.
+
+\subsection{Sensitivity to the Sending Rate}
+\label{subsec:sensitivity-sending-rate}
+
+% Evaluation F 第1段提纲：仿照 ELORA 的参数实验，先交代评估对象与扫描范围；将前述 1.2 倍压力负载扩展为 1.0--1.4 倍，步长为 0.05。用户确认使用 Qwen3-14B 模型与 chatbot 工作负载，不推广到其他未验证场景。
+In this subsection, we investigate the performance of \tango{} under different sending rates.
+The overall comparison in Section~\ref{subsec:slo-attainment-and-goodput} uses $1.2\lambda_{90}$ to evaluate serving performance under pressure.
+Here, we vary the load multiplier $\alpha$ from 1.0 to 1.4 in increments of 0.05 and replay the trace at $\alpha\lambda_{90}$.
+We use Qwen3-14B with the chatbot workload for this experiment.
+All systems use the same request sequence, arrival schedule, and SLO targets at each sending rate.
+
+% 发送率敏感性实验图：单栏；左图为 goodput，右图为整体 SLO 达标率，负载系数相对于 vLLM 的 90\% 达标率发送率。
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/multi_qps_goodput_slo.pdf}
+  \caption{The goodput and overall SLO attainment of \tango{}, vLLM, SOLA, and JITServe under different sending rates for Qwen3-14B on the chatbot workload. The load multiplier is relative to $\lambda_{90}$.}
+  \label{fig:multi-qps-goodput-slo}
+\end{figure}
+
+
+Fig.~\ref{fig:multi-qps-goodput-slo} shows the goodput and overall SLO attainment of \tango{} and the baselines.
+At $\lambda_{90}$, without additional stress, all four systems achieve high SLO attainment and similar goodput, with \tango{} still leading in both metrics.
+As the sending rate increases, both metrics generally decline, but \tango{} maintains higher SLO attainment and goodput, showing a more pronounced advantage under pressure.
+These results are consistent with \tango{}'s coordinated control of request ordering and step duration.
+As the sending rate increases, more requests compete for execution, making queueing delay and prefill/decode interference harder to control.
+The dispatcher prioritizes urgent requests for admission, while the allocator adjusts the prefill work in each step according to the predicted duration and active latency slack.
+This coordination helps \tango{} preserve higher SLO attainment and goodput under increasing pressure, although both metrics also decline at higher loads.
+The results show that \tango{}'s performance benefits persist across the evaluated sending rates.
+
+\subsection{Sensitivity to SLO Settings}
+\label{subsec:sensitivity-slo-settings}
+
+% Evaluation G 第1段：用户确认前四组使用 Qwen3-14B 与 chatbot，同时缩放每个请求的 TTFT 与 TPOT SLO，系数为 0.8、0.9、1.1、1.2；最后一组混合不同类型 trace，每种类型固定一种 SLO 配置，不同类型可以不同，不假设具体 SLO 对应关系。
+In this subsection, we evaluate \tango{} under different SLO settings.
+For Qwen3-14B on the chatbot workload, we scale both TTFT and TPOT targets by $\eta\in\{0.8,0.9,1.1,1.2\}$.
+We also combine requests from different trace types into a mixed workload.
+All requests of the same trace type share one fixed TTFT/TPOT SLO configuration, while different types can use different configurations.
+All systems use identical requests and arrivals within each setting.
+
+% SLO 敏感性与混合 trace 图：单栏；前四组为整体 SLO 缩放，最后一组为 mix trace。左图为整体 SLO 达标率，右图为 goodput。
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/multi_trace_goodput_slo.pdf}
+  \caption{The overall SLO attainment and goodput of \tango{}, vLLM, SOLA, and JITServe under different SLO settings. }
+  \label{fig:multi-trace-goodput-slo}
+\end{figure}
+
+% Evaluation G 第2段：仅报告相对基线的提升；四个 SLO 缩放系数下的达标率差值及 goodput 比值分别取算术平均，按用户要求统一用百分号表示达标率提升，数值保持不变。数值来自 /Users/yixiao/Desktop/TANGO-plot/data/multi-trace.csv；其绘图 PDF 与本文图的 SHA-256 一致。
+Fig.~\ref{fig:multi-trace-goodput-slo} shows that \tango{} achieves the highest overall SLO attainment and goodput in all five settings.
+Across the four SLO scaling factors, the average increases in SLO attainment are 22.80\%, 21.72\%, and 18.22\% compared with vLLM, SOLA, and JITServe, respectively.
+The corresponding average goodput ratios are $1.29\times$, $1.28\times$, and $1.16\times$.
+
+% Evaluation G 第3段：混合 trace 单独报告相对提升；达标率仍按差值计算，按用户要求统一使用百分号，goodput 使用倍数，不报告绝对指标。
+For the mixed trace, \tango{} increases SLO attainment by 44.50\%, 50.75\%, and 19.88\% over vLLM, SOLA, and JITServe, respectively, with corresponding goodput ratios of $2.02\times$, $2.47\times$, and $1.19\times$.
+These results show that deadline-aware request ordering and step-time-guided token allocation remain effective under both SLO scaling and mixed workloads.
+
+\subsection{Overhead of TANGO}
+\label{subsec:overhead-of-tango}
+
+% Evaluation H 时间开销：内容依据 main.pdf 第 5.7 节，语言与结构仿照 ELORA 的 overhead 段落；保留原文的估计性质，不将数值改写为实测结果。
+\textbf{Time Overhead:}
+It mainly comes from deadline maintenance, request ordering, and preemption decisions in the dispatcher, and decode-deadline selection, step-time prediction, and prefill-budget search in the allocator.
+Both components run on the CPU before model execution and reuse vLLM's existing executor.
+The closed-form step-time model requires only a few arithmetic operations for each prediction.
+For a scheduling step with thousands of candidate requests, the estimated CPU time for deadline maintenance and decode-deadline selection is less than 0.5\,ms in total, while step-time prediction and budget search take less than 0.1\,ms.
+Since model execution typically takes tens to hundreds of milliseconds per step, this estimated overhead is usually below 1\% of the step latency.
+
+% Evaluation H 内存开销：沿用 main.pdf 的紧凑表示估计，保留 96 bytes/request、2,500 请求约 240 KB、系数及配置小于 128 bytes、临时列表约 16 bytes/active decode request。
+\textbf{Memory Overhead:}
+\tango{} stores additional scheduling state as CPU-side metadata, including request SLOs, arrival and latest-token timestamps, generated-token counts, effective deadlines, and progress information.
+A compact representation is estimated to require approximately 96 bytes of persistent metadata per request, corresponding to about 240\,KB for 2,500 resident requests.
+Moreover, the allocator stores the fitted step-time coefficients and a few configuration values, with a total footprint below 128 bytes.
+Its temporary decode-deadline list requires about 16 bytes per active decode request.
+The per-request state scales linearly with the request count and is negligible compared with the memory occupied by model weights and KV caches.

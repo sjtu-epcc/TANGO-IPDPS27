@@ -16,8 +16,8 @@ Its time to first token (TTFT) and time per output token (TPOT) are defined as
   \begin{aligned}
     \mathrm{TTFT}_i &= t_{i,1} - a_i, \\
     \mathrm{TPOT}_i &= \frac{1}{n_i-1}
-      \sum_{j=2}^{n_i}\left(t_{i,j}-t_{i,j-1}\right),
-      \quad n_i > 1.
+    \sum_{j=2}^{n_i}\left(t_{i,j}-t_{i,j-1}\right),
+    \quad n_i > 1.
   \end{aligned}
   \label{eq:latency-metrics}
 \end{equation}
@@ -43,7 +43,7 @@ Specifically, let $\mathcal{P}_k$ and $\mathcal{D}_k$ denote the prefill and dec
 The number of tokens scheduled in this step is
 \begin{equation}
   T_k = \sum_{r_i \in \mathcal{P}_k} c_{i,k}
-        + \lvert\mathcal{D}_k\rvert,
+  + \lvert\mathcal{D}_k\rvert,
   \qquad T_k \leq B_{\max},
   \label{eq:step-token-budget}
 \end{equation}
@@ -69,7 +69,6 @@ For each request, we generate 1,024 variants by prepending a distinct synthetic 
 
 From the three request pools, we randomly sample 10,000 chatbot, 8,000 mathematical-reasoning, and 4,000 software-agent requests to form the replay traces.
 
-
 \textbf{Arrivals and SLOs.}
 We associate requests in order with timestamps from failure-free entries in BurstGPT and replay each workload according to these timestamps, thereby preserving the trace's temporal arrival pattern.
 For each workload, we first determine the sending rate $\lambda_{90}$ at which vLLM achieves a 90\% SLO attainment rate.
@@ -81,9 +80,9 @@ We derive the two SLOs of request $r_i$ as
 \begin{equation}
   \begin{aligned}
     S_i^{\mathrm{TTFT}} &= c_i^{\mathrm{TTFT}}
-      \widehat{\mathrm{TTFT}}_i, \\
+    \widehat{\mathrm{TTFT}}_i, \\
     S_i^{\mathrm{TPOT}} &= c_i^{\mathrm{TPOT}}
-      \widehat{\mathrm{TPOT}}_i,
+    \widehat{\mathrm{TPOT}}_i,
   \end{aligned}
   \label{eq:slo-generation}
 \end{equation}
@@ -91,8 +90,6 @@ where $\widehat{\mathrm{TTFT}}_i$ and $\widehat{\mathrm{TPOT}}_i$ are the isolat
 Using a fixed random seed, we assign requests equally among four SLO classes: TTFT-prioritized, TPOT-prioritized, balanced, and relaxed.
 For Qwen3-14B, the TTFT/TPOT coefficient pairs for these four classes are $(20, 2.5)$, $(50, 1.5)$, $(25, 2)$, and $(50, 3)$, respectively.
 All compared systems use the same request sequence, arrival schedule, and SLO targets under each experimental condition.
-
-
 
 \begin{table}[t]
   \renewcommand{\arraystretch}{1.05}
@@ -102,19 +99,20 @@ All compared systems use the same request sequence, arrival schedule, and SLO ta
   \centering
   \scriptsize
   \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{c|c}
-    \hline
-    & \textbf{Specifications} \\
-    \hline
-    \textbf{Hardware} & \makecell[c]{$2\times$ Intel Xeon Gold 6530 CPUs, 64 physical cores \\
-      128 logical threads, 377.6 GiB host RAM (OS-reported) \\
-      $4\times$ RTX 6000 Ada GPUs (48 GB each); $2\times$ GPUs used per run} \\
-    \hline
-    \textbf{Software} & \makecell[c]{Qwen/Qwen3-14B (TP${}={}$2); vLLM 0.17.0 \\
-      PyTorch 2.10.0+cu128; CUDA 12.8; driver 570.124.06 \\
-      LMSYS-Chat-1M, GSM8K, AgentWorldBench-SWE, BurstGPT} \\
-    \hline
-  \end{tabular}%
+    \begin{tabular}{c|c}
+      \hline
+      & \textbf{Specifications} \\
+      \hline
+      \textbf{Hardware} & \makecell[c]{$2\times$ Intel Xeon Gold 6530 CPUs, 64 physical cores \\
+        128 logical threads, 256 GiB host RAM \\
+      $4\times$ RTX 6000 Ada GPUs (48 GB each)} \\
+      \hline
+      \textbf{Software} & \makecell[c]{meta-llama/Llama-3.1-8B
+        ,Qwen/Qwen3-14B,\\Qwen/Qwen3-32B
+        ;
+      LMSYS-Chat-1M, \\GSM8K, AgentWorldBench-SWE, BurstGPT} \\
+      \hline
+    \end{tabular}%
   }
 \end{table}
 
@@ -170,17 +168,17 @@ These observations motivate a closer examination of how request ordering and per
 Our investigation identifies two complementary causes of the low Multi-SLO attainment: 1) FCFS distributes queueing delay without considering request-specific TTFT urgency, and 2) a fixed token budget does not provide a reliable latency bound for steps that mix prefill and decode tokens.
 
 \begin{figure}[!t]
-  \centering
-  \includegraphics[width=0.94\columnwidth]{figures/background-and-motivation/moti_queue_slo}
-  \caption{Normalized TTFT and queueing time under FCFS.}
-  \label{fig:temporal-slo-ratio}
+\centering
+\includegraphics[width=0.94\columnwidth]{figures/background-and-motivation/moti_queue_slo}
+\caption{Normalized TTFT and queueing time under FCFS.}
+\label{fig:temporal-slo-ratio}
 \end{figure}
 
 \noindent\textbf{1) SLO-unaware temporal scheduling.}
 The first-token latency of request $r_i$ can be decomposed as
 \begin{equation}
-  \mathrm{TTFT}_i = W_i^{\mathrm{queue}} + L_i^{\mathrm{prefill}},
-  \label{eq:ttft-decomposition}
+\mathrm{TTFT}_i = W_i^{\mathrm{queue}} + L_i^{\mathrm{prefill}},
+\label{eq:ttft-decomposition}
 \end{equation}
 where $W_i^{\mathrm{queue}}$ is the delay from arrival until the request is first admitted for prefill, and $L_i^{\mathrm{prefill}}$ is the remaining latency until its first token is produced.
 For a chunked prefill, $L_i^{\mathrm{prefill}}$ includes the execution and intervening scheduling delays of all prompt chunks after admission.
@@ -199,10 +197,10 @@ The temporal scheduling problem is thus to determine \emph{which request} should
 Accounting for the remaining TTFT slack can redistribute queueing delay toward requests that can tolerate it, without changing the total amount of prefill work.
 
 \begin{figure}[!t]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/background-and-motivation/moti_token_heatmap}
-  \caption{Mean step time with different prefill and decode token counts.}
-  \label{fig:spatial-pd-grid}
+\centering
+\includegraphics[width=\columnwidth]{figures/background-and-motivation/moti_token_heatmap}
+\caption{Mean step time with different prefill and decode token counts.}
+\label{fig:spatial-pd-grid}
 \end{figure}
 
 \noindent\textbf{2) Workload-unaware spatial scheduling.}
