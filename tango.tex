@@ -29,11 +29,17 @@
 \thispagestyle{plain}
 
 \begin{abstract}
-Online Large Language Model (LLM) serving faces the challenge of delivering high throughput while satisfying heterogeneous latency Service-Level Objectives (SLOs). 
-Each request undergoes a prefill phase to produce the first token, followed by a decode phase that generates subsequent tokens, giving rise to two latency metrics: time-to-first-token (TTFT) and time-per-output-token (TPOT).
-However, existing LLM serving systems struggle to adapt resource allocation to the varying urgency of requests across prefill and decode phases under heterogeneous SLOs.
-We therefore propose \tango, a temporal-spatial co-scheduling framework for Multi-SLO LLM serving. \tango comprises a \dispatcher{} and a \allocator{}. The dispatcher prioritizes requests based on phase-aware SLO deadlines, while the token allocator regulates per-step workloads using predicted execution time. 
-Together, they coordinate request ordering and batch composition to improve first-token responsiveness and inter-token timeliness. Experimental results show that \tango improves overall SLO attainment by \redword{58.72\%}, and achieves \redword{1.52}× higher goodput on average than state-of-the-art systems.
+Online large language model (LLM) serving processes each request through a prefill phase and a decode phase, whose latency is measured by time-to-first-token (TTFT) and time-per-output-token (TPOT), respectively.
+A key challenge is to meet heterogeneous Service-Level Objectives (SLOs) for both latency metrics while improving goodput, which is the rate of requests that meet both SLOs.
+% However, existing LLM serving systems either ignore heterogeneous SLOs or enforce them only at an aggregate level, resulting in frequent SLO violations under mixed workloads. 
+% \SJC{However, existing LLM serving system ignore heterogeneous SLOs of requests, and fail to appropriately schedule the request execution priority and allocte token bugdet to p and d in a batch. (LIKE THAT)}
+% However, existing LLM serving systems struggle to adapt resource allocation according to varying request urgency in both phases, leading to frequent SLO violations.
+However, existing LLM serving systems struggle to jointly adapt request priorities and the allocation of prefill and decode tokens within each execution step, leading to frequent SLO violations under heterogeneous latency requirements.
+We therefore propose \tango, a temporal-spatial co-scheduling framework for Multi-SLO LLM serving. 
+\tango comprises a \dispatcher{} and a \allocator{}. 
+The dispatcher prioritizes requests based on phase-aware SLO deadlines, while the token allocator regulates per-step workloads for prefill and decode phases using predicted execution time. 
+% Together, they coordinate request ordering and batch composition to improve first-token responsiveness and inter-token timeliness. 
+Experimental results show that \tango improves overall SLO attainment by \redword{58.72\%}, and achieves \redword{1.52}× higher goodput on average than state-of-the-art systems.
 \end{abstract}
 
 % \begin{IEEEkeywords}
