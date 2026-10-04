@@ -3,7 +3,6 @@
 \label{sec:introduction}
 
 % TODO: Write this section.
-% \SJC{Paragraph-1: LLM serving, different SLO for prefill and deocde, example applications of different SLOs}
 Online large language model (LLM) services consolidate requests from multiple applications on shared model instances to improve GPU utilization and reduce serving costs.
 These applications impose distinct latency requirements: some requests are sensitive to the delay before the first output token, as in interactive chat, whereas others are sensitive to the delay between consecutive output tokens, as in real-time translation.
 These latency requirements are associated with two phases of LLM inference: during \emph{prefill}, the model processes the prompt and generates the first output token; during autoregressive \emph{decode}, it generates subsequent tokens one at a time.
@@ -11,13 +10,11 @@ Time to first token (TTFT) measures the delay from request arrival until the fir
 Online serving systems must therefore maintain high throughput while meeting application-specific TTFT and TPOT service-level objectives (SLOs).
 
 
-% \SJC{Paragraph-2: Facing such a scenario, the opimization goal is to attain the both TTFT and TPOT slo for LLM serving, to improve the goodput under slo. Some common techniques are utilized to improve such goodput, introducing the continous batching and chuck prefill, that widely used in vllm, sglang...,}
 Facing such a scenario, LLM serving aims to improve goodput by satisfying both TTFT and TPOT SLOs for requests with heterogeneous latency requirements.
 To support this goal, serving systems combine continuous batching, which dynamically admits new requests into the active batch between iterations, with chunked prefill, which divides long prompts into smaller segments that can be processed alongside decoding requests.
 This combination improves GPU utilization and serving efficiency and is adopted by state-of-the-art inference engines such as vLLM and SGLang.
 
 
-% \SJC{Paragraph-3: A figure to show how current LLM engine handle these various SLO requests in a workflow, mainly explaining what is temporal scheduling (determining the request execution priority?) and what is spatial scheduling (the token allocation for the batch)}
 As shown in Fig.~\ref{fig:serving-workflow}, incoming requests first enter the engine's waiting queue.
 At each execution step, the scheduler selects waiting requests to run alongside ongoing requests.
 It then allocates the step's token budget among these requests to form a batch, specifying the sizes of prefill chunks and the number of decode tokens to include.
@@ -27,39 +24,32 @@ These two decisions jointly shape request queueing delay and step duration, ther
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/tmp/ai-intro.png}
+  \includegraphics[width=\columnwidth]{figures/introduction/intro.pdf}
   \caption{Temporal and spatial scheduling in LLM serving.}
   \label{fig:serving-workflow}
 \end{figure}
 
 
-% \SJC{Paragraph-4: Current works neglect the different SLO requirements of each request's each prefill and decode stages. They adopt fcfs for temporal scheduling, and fixed token buget for each step batch xxx. From our investiagtions on xxx model xxx dataset with different SLO requiemnts, the attainment rate for p and d are only aa\% and bb\%, resectively, and the total attainment is cc\%. The low efficiency steps from two aspects.}
 Existing throughput-oriented engines commonly use first-come-first-served (FCFS) admission for temporal scheduling and a fixed maximum token budget for spatial scheduling, without adapting these policies to the heterogeneous SLOs of individual requests.
-To assess the impact of these policies, we evaluate the default FCFS scheduler on the Qwen3-8B model using a workload with heterogeneous TTFT and TPOT requirements.
-Among requests with tight TTFT SLOs, only \redword{aa.bb\%} satisfy both SLOs, with TTFT violations accounting for most failures.
-For requests with tight TPOT SLOs, joint SLO attainment is similarly low at \redword{aa.bb\%}, with TPOT violations as the main cause.
-Across the workload, only \redword{aa.bb\%} of requests satisfy both TTFT and TPOT SLOs.
+To assess the impact of these policies, we evaluate vLLM's default FCFS scheduler on Qwen3-14B using the mathematical-reasoning workload with heterogeneous TTFT and TPOT requirements.
+Among requests with tight TTFT SLOs, only 48.89\% satisfy both SLOs, with TTFT violations accounting for most failures.
+For requests with tight TPOT SLOs, joint SLO attainment is similarly low at 12.00\%, with TPOT violations as the main cause.
+Across the workload, only 53.48\% of requests satisfy both TTFT and TPOT SLOs.
 This low joint attainment highlights the limitations of SLO-unaware scheduling under heterogeneous latency requirements.
 
 
-% \SJC{Paragraph-5: The first reason from the temporal aspect is that ignoing the different SLOs result in inappropriate queuing. Some requests have slack but xxx.}
 First, SLO-unaware temporal scheduling leads to an admission order that does not reflect request urgency.
 Under FCFS, a request with a tight TTFT objective can wait behind earlier requests with ample latency slack.
 The urgent request may exhaust its TTFT budget in the queue, even though the earlier requests could tolerate being served later.
-In our workload, queueing accounts for \redword{aa.bb\%} of TTFT on average.
 FCFS therefore misses the opportunity to defer less urgent requests and use their slack to reduce queueing delays for requests with tighter SLOs.
 
 
-% \SJC{Paragraph-6: The second reason from the spatial aspect is that token distribution is not suitable. With fixed allocation, xxx}
 Second, existing spatial scheduling policies allocate tokens under a fixed per-step budget without considering the TPOT requirements of active decode requests.
 Because decoding requests must wait for the entire batch to finish before receiving their next tokens, admitting more prefill work can prolong their inter-token delays.
-With 2,048 decode tokens fixed, increasing prefill work from zero to 2,048 tokens raises mean step time from \redword{aa.bb\,ms} to \redword{aa.bb\,ms}.
-Moreover, the same total token count can yield different step times: under a 4,096-token budget, pure-prefill and pure-decode steps both take approximately \redword{aa.bb\,ms}, whereas an evenly mixed step takes \redword{aa.bb\,ms}.
+With 2,048 decode tokens fixed, increasing prefill work from zero to 2,048 tokens raises mean step time from 329\,ms to 759\,ms.
+Moreover, the same total token count can yield different step times: under a 4,096-token budget, pure-prefill and pure-decode steps take 611\,ms and 683\,ms, respectively, whereas an evenly mixed step takes 759\,ms.
 A fixed token budget therefore cannot reliably bound step duration or adapt prefill allocation to the latency tolerance of decoding requests.
 
-% \SJC{Paragraph-7: An intuitive solution is to schedule request-level priority xxx, and decides the appropriate token allocation into each batch xxx. However, two challenges exits for this purpose. 
-% First, WHAT is the first challenge?
-% Second, we need to accurately assess the token time under different levels of contention, xxx.}
 Addressing these inefficiencies requires coordinating request-level urgency with batch-level execution time.
 First, temporal scheduling involves deciding which waiting requests to admit and which ongoing requests can be deferred under resource contention.
 These requests are governed by different active SLOs and have consumed different portions of their latency budgets, so determining their execution order hinges on a consistent comparison of urgency across phases.
@@ -68,7 +58,6 @@ Allocating more tokens to prefill can advance requests with urgent TTFT objectiv
 Balancing these competing demands requires accurately estimating step time under varying prefill/decode compositions and execution contexts, then using that estimate to guide per-step token allocation.
 
 
-% \SJC{Paragraph-8: To address above challneges, we propose tango, including xxx and xxx. The dipatcher xxxx. The alloactor xxxx.}
 We therefore propose \tango{}, a multi-SLO LLM serving system that jointly controls temporal request dispatch and spatial token allocation.
 \tango{} aims to improve goodput while satisfying heterogeneous TTFT and TPOT requirements.
 It comprises a \dispatcher{} and a \allocator{}.
@@ -76,10 +65,6 @@ The \dispatcher{} assigns phase-aware deadlines according to each request's acti
 The \allocator{} uses a step-time model to predict the execution time of mixed prefill/decode batches and adjusts their prefill token budgets according to the remaining latency slack of decoding requests.
 
 
-% \SJC{Paragraph-9: This paper makes three major contributions.
-% 1)Invesitgation the SLO inefficiency of current xxx works. The analysis motivates us to xxx.
-% 2) The design of the xxx dispatcher.
-% 3) The design of the xxx alloctor.}
 This paper makes three major contributions:
 \begin{itemize}
   \item \textbf{Investigating scheduling inefficiencies in multi-SLO LLM serving.}
@@ -93,6 +78,5 @@ This paper makes three major contributions:
 \end{itemize}
 
 
-% \SJC{Paragraph-10: Evaluation results show xxx.}
-We evaluate \tango{} against vLLM, SOLA, and JITServe using Llama-3.1-8B, Qwen3-14B, and Qwen3-32B under chatbot, mathematical-reasoning, and code-generation workloads.
-Compared with state-of-the-art systems, \tango{} improves overall SLO attainment by \redword{aa.bb\%} and \redword{aa.bb\%}, and achieves up to \redword{a.bb$\times$} the goodput.
+We evaluate \tango{} against vLLM, SOLA, and JITServe using Llama-3.1-8B, Qwen3-14B, and Qwen3-32B under chatbot, mathematical-reasoning, and software-agent workloads.
+Compared with state-of-the-art systems, \tango{} improves overall SLO attainment by 58.72\% and achieves $1.52\times$ the goodput on average.

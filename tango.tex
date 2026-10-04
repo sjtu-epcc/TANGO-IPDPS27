@@ -25,16 +25,12 @@
 
 % TODO: Add authors and affiliations.
 \maketitle
-% Show centered page numbers, including on the title page.
 \pagestyle{plain}
 \thispagestyle{plain}
 
 \begin{abstract}
-% Write the abstract.
 Online Large Language Model (LLM) serving faces the challenge of delivering high throughput while satisfying heterogeneous latency Service-Level Objectives (SLOs). 
 Each request undergoes a prefill phase to produce the first token, followed by a decode phase that generates subsequent tokens, giving rise to two latency metrics: time-to-first-token (TTFT) and time-per-output-token (TPOT).
-% However, existing LLM serving systems either ignore heterogeneous SLOs or enforce them only at an aggregate level, resulting in frequent SLO violations under mixed workloads. 
-% \SJC{However, existing LLM serving system ignore heterogeneous SLOs of requests, and fail to appropriately schedule the request execution priority and allocte token bugdet to p and d in a batch. (LIKE THAT)}
 However, existing LLM serving systems struggle to adapt resource allocation to the varying urgency of requests across prefill and decode phases under heterogeneous SLOs.
 We therefore propose \tango, a temporal-spatial co-scheduling framework for Multi-SLO LLM serving. \tango comprises a \dispatcher{} and a \allocator{}. The dispatcher prioritizes requests based on phase-aware SLO deadlines, while the token allocator regulates per-step workloads using predicted execution time. 
 Together, they coordinate request ordering and batch composition to improve first-token responsiveness and inter-token timeliness. Experimental results show that \tango improves overall SLO attainment by \redword{58.72\%}, and achieves \redword{1.52}× higher goodput on average than state-of-the-art systems.
@@ -52,7 +48,6 @@ Together, they coordinate request ordering and batch composition to improve firs
 \input{section/evaluation-of-tango}
 \input{section/conclusion}
 
-% References will be enabled after the related-work text is finalized.
 % \bibliographystyle{IEEEtran}
 % \bibliography{references}
 

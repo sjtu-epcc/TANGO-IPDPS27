@@ -2,7 +2,6 @@
 \section{TANGO Methodology}
 \label{sec:tango-methodology}
 
-% 第1段：引出总览图和两个模块；说明每轮迭代联合决定请求执行优先级与 token 分配，形成混合 batch。
 Fig.~\ref{fig:tango-overview} shows the design overview of \tango{}, which comprises a \dispatcher{} and a \allocator{}.
 At each iteration boundary, the two components coordinate request execution priority and per-step token allocation according to heterogeneous TTFT and TPOT objectives.
 They take each request's SLOs, inference phase, and execution progress as input and produce a mixed batch of prefill chunks and decode tokens.
@@ -14,19 +13,16 @@ They take each request's SLOs, inference phase, and execution progress as input 
   \label{fig:tango-overview}
 \end{figure}
 
-% 第2段：说明跨 prefill/decode 阶段比较紧迫性的挑战；用阶段相关 deadline 统一优先级，指导 admission 和 preemption，并指向 dispatcher 小节。
 The temporal scheduling challenge is to compare request urgency across inference phases.
 A request with an unfinished prefill must produce its first token within its TTFT budget, whereas a decoding request must sustain token-generation progress within its TPOT budget.
 The dispatcher maps these phase-specific requirements to comparable deadlines and updates request priorities as inference progresses.
 These priorities guide the admission of waiting requests and the preemption of less urgent ongoing requests under resource contention (Section~\ref{sec:deadline-aware-request-dispatcher}).
 
-% 第3段：说明推进紧迫 prefill 与控制 decode 干扰之间的矛盾；预测混合 step 耗时，将 decode 剩余时间预算转化为 prefill token 预算，再按 dispatcher 优先级分配。
 The spatial scheduling challenge is to advance urgent prefills while limiting their interference with decoding requests.
 As shown in Section~\ref{subsec:motivation-underlying-reasons}, the total token count alone cannot reliably determine mixed-step execution time.
 The allocator therefore uses a step-time model to predict the duration of candidate batches from their prefill/decode composition and context-dependent attention work.
 It converts the remaining deadline slack of selected decode requests into a prefill token budget and distributes that budget according to the dispatcher's priorities (Section~\ref{sec:step-time-model-guided-token-allocator}).
 
-% 第4段：按一次迭代串联两个模块：根据 running 状态推导 prefill 预算，按 deadline 准入 waiting 请求，KV 分配失败时仅为更早 deadline 的请求触发抢占，再分配 token、执行并反馈进度。
 Specifically, \tango{} operates as follows.
 First, the scheduler collects the running requests' execution state, and the allocator derives a prefill token budget using the step-time model.
 Second, the dispatcher orders waiting requests by their phase-aware deadlines for admission alongside ongoing requests.
@@ -35,7 +31,6 @@ The allocator applies the remaining token and time budgets to the prefill chunks
 Finally, the engine executes the resulting batch and returns token timestamps and request progress to update the next scheduling decision.
 Unfinished requests remain eligible for reconsideration at the next iteration boundary.
 
-% 第5段：结合图中紧迫请求提前获得服务的例子，说明 dispatcher 决定谁先执行，allocator 根据 decode 时间预算限制本轮 prefill 工作量，体现联合调度。
 The example in Fig.~\ref{fig:tango-overview} illustrates how the two components cooperate.
 An urgent waiting request $r_4$ receives earlier admission, while a less urgent ongoing request can be preempted to release capacity.
 The allocator then determines how much of the admitted request's prompt can share a step with the active decode workload.

@@ -2,11 +2,9 @@
 \subsection{\dispatcher{}}
 \label{sec:deadline-aware-request-dispatcher}
 
-% 第1段提纲：结合两张设计图介绍 dispatcher；第一张将各阶段目标映射为统一优先级 D，第二张说明该优先级如何指导准入与条件抢占。
 Figs.~\ref{fig:phase-aware-deadlines} and~\ref{fig:deadline-admission-preemption} illustrate the dispatcher, which uses phase-aware deadlines as a common priority signal for request admission and preemption.
 In this section, we first introduce phase-aware deadline construction (Fig.~\ref{fig:phase-aware-deadlines}), then explain how these deadlines guide waiting-queue ordering and preemption under KV-cache memory pressure (Fig.~\ref{fig:deadline-admission-preemption}).
 
-% 图：prefill 共用固定 TTFT deadline，decode 滚动更新 TPOT deadline；两者映射到同一优先级键 D，时间单位统一放入图注。
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/tango-methodology/phase-aware-deadlines.pdf}
@@ -17,7 +15,6 @@ In this section, we first introduce phase-aware deadline construction (Fig.~\ref
 \subsubsection{Phase-Aware Request Ordering}
 \label{subsec:phase-aware-request-ordering}
 
-% 第2段：说明不同阶段的活跃 SLO 与时间起点；根据 output token 数将 TTFT/TPOT 转化为同一时间轴上的 deadline，并对应图中的 common priority key。
 As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, arrival order does not reflect the different latency budgets of waiting requests.
 Moreover, a request's active latency objective changes during inference: before its first output token, it must produce that token within its TTFT budget; afterward, it must make timely progress in decoding.
 Our key idea is to express these phase-specific objectives as an effective deadline on the same time axis.
@@ -34,7 +31,6 @@ Using the timestamps and SLOs defined in Section~\ref{sec:multi-slo-llm-serving}
 The first case bounds the time available before the first token, while the second gives a rolling target for the next token based on the most recent output timestamp, denoted by $t_{\mathrm{last}}$ in Fig.~\ref{fig:phase-aware-deadlines}.
 Both cases map the active latency objective to the common priority key $D$, allowing the dispatcher to compare requests across inference phases.
 
-% 第3段：结合 deadline 构造图解释维护过程：r1 的多个 prefill chunk 共用 180 ms deadline，r3 随输出从 100 更新至 120 ms；说明局部 token 间隔目标与平均 TPOT 的关系。
 The deadline is maintained according to output progress rather than reset whenever a request is scheduled.
 During chunked prefill, all chunks share the original TTFT deadline, so both queueing and the execution of successive chunks consume the same latency budget.
 For example, $r_1$ in Fig.~\ref{fig:phase-aware-deadlines} arrives at $0$~ms with a TTFT SLO of $180$~ms; its deadline remains $180$~ms across all prompt chunks.
@@ -43,7 +39,6 @@ Each subsequent output token updates the timestamp in Eq.~\ref{eq:phase-aware-de
 For $r_3$ with a TPOT SLO of $100$~ms, advancing the latest output timestamp from $0$ to $20$~ms moves its deadline from $100$ to $120$~ms.
 This rolling deadline provides a local target for each inter-token interval; meeting these targets is sufficient to satisfy the average-TPOT objective in Eq.~\ref{eq:latency-metrics}.
 
-% 第4段：将新到达与被抢占的请求统一按 EDF 排序，并说明平局处理及资源约束；对应准入与抢占图中 r4 先于 r5 尝试准入。
 At each iteration boundary, the dispatcher orders waiting requests by increasing $D_i$ and admits them in earliest-deadline-first (EDF) order.
 Arrival time breaks deadline ties, with request identifiers providing deterministic ordering when both values are equal.
 The waiting queue contains both newly arrived requests and preempted requests awaiting resumption.
@@ -55,7 +50,6 @@ This ordering allows requests with later deadlines to absorb more queueing delay
 \subsubsection{Deadline-Aware Preemption}
 \label{subsec:deadline-aware-preemption}
 
-% 图：展示 40 ms 时的一次 KV 分配失败；只有等待请求 deadline 严格早于 victim 才抢占，victim 保留 deadline 重新入队。
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/tango-methodology/deadline-admission-preemption.pdf}
@@ -63,7 +57,6 @@ This ordering allows requests with later deadlines to absorb more queueing delay
   \label{fig:deadline-admission-preemption}
 \end{figure}
 
-% 第5段：以等待请求 KV 分配失败为触发条件，选择 running 中 deadline 最晚的请求；仅当新请求 deadline 严格更早时抢占，相等或更晚则继续等待。
 During continuous batching, a new or resumed request may fail to obtain the KV-cache blocks required for admission.
 The dispatcher then uses the same deadline representation to identify a running request that can yield memory.
 For the current running set $\mathcal{R}_k$, it selects the candidate victim as
@@ -76,7 +69,6 @@ where the tuple is compared lexicographically, so a later-arriving request is se
 For waiting request $r_j$, preemption proceeds only if $D_j < D_v$.
 Otherwise, $r_j$ remains queued, preserving the running requests whose deadlines are equally or more urgent.
 
-% 第6段：说明抢占与恢复过程及元数据保留；结合准入与抢占图在 40 ms 时的例子，r4 抢占 r1 后准入，r1 保持 180 ms deadline 重新入队。
 When the comparison permits preemption, the engine reclaims the victim's KV-cache blocks, returns it to the waiting queue, and retries admission of $r_j$.
 Preemption occurs at an iteration boundary and preserves the victim's SLOs, arrival time, output-token count, and latest output timestamp.
 The victim re-enters the queue with the deadline of its current phase: its original TTFT deadline before the first token, or its existing next-token deadline afterward.
