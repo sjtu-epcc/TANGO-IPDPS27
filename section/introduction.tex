@@ -4,7 +4,7 @@
 % TODO: Write this section.
 Online large language model (LLM) services consolidate requests from different applications on shared model instances to improve GPU utilization and reduce costs.
 These applications impose distinct latency requirements.
-For example, interactive chat prioritizes a fast first token generation, while real-time translation requires short latency between consecutive ouput tokens.
+For example, interactive chat prioritizes a fast first token generation, while real-time translation requires short latency between consecutive output tokens.
 % These applications impose distinct performance requirements.
 % Some requests are sensitive to the latency before the first output token, as in interactive chat, whereas others are sensitive to the latency between consecutive output tokens, as in real-time translation.
 These latency requirements correspond to two phases of LLM inference. During \emph{prefill}, the model processes the prompt and generates the first output token, measured by the time to first token (TTFT).
@@ -63,8 +63,8 @@ As for the spatial aspect,
 existing works allocate tokens under a fixed per-step budget without considering the TPOT requirements of active decode requests.
 % Because decoding requests must wait for the entire batch to finish before receiving their next tokens, admitting more prefill work can prolong their inter-token delays.
 However, we observe that the step time depends on both the total token count in a token batch and the prefill/decode composition.
-\textcolor{red}{With 2,048 decode tokens fixed under xxx model and xxx GPU}, adding 2,048 prefill tokens increases mean step time \textcolor{red}{from 329.X\,ms to 759.X\,ms}.
-Even with the total token count fixed at 4,096, pure-prefill, pure-decode, and evenly mixed batches take \textcolor{red}{611.X\,ms, 683.X\,ms, and 759.X\,ms}, respectively.
+With 2,048 decode tokens fixed under Qwen3-14B model and RTX 6000 Ada GPU, adding 2,048 prefill tokens increases mean step time from 328.7\,ms to 758.6\,ms.
+Even with the total token count fixed at 4,096, pure-prefill, pure-decode, and evenly mixed batches take 610.5\,ms, 682.5\,ms, and 758.6\,ms, respectively.
 A fixed token budget alone therefore cannot reliably control step time to meet the TPOT requirements of active decode requests.
 
 To adress these two inefficiencies, an appropriate solution is to coordinate request-level urgency at the temporal perspective, with batch-level execution time at the spatial perspective.
@@ -101,5 +101,5 @@ This paper makes three major contributions:
 \end{itemize}
 
 
-We evaluate \tango{} against state-of-the-art LLM serving systems, including vLLM, SOLA, and JITServe, using Llama-3.1-8B, Qwen3-14B, Qwen3-32B, \textcolor{red}{llama3.1-70b, and Qwen3-Next-80B-A3B-Instruct} under chatbot, mathematical-reasoning, and software-agent workloads.
+We evaluate \tango{} against state-of-the-art LLM serving systems, including vLLM, SOLA, and JITServe, using Llama-3.1-8B, Qwen3-14B, Qwen3-32B, Llama-3.1-70B, and Qwen3-Next-80B-A3B-Instruct under chatbot, mathematical-reasoning, and software-agent workloads.
 Compared to the baselines, \tango{} improves the overall SLO attainment by 58.72\% and improve the goodput by 1.52$\times$ on average.
