@@ -33,6 +33,7 @@
 # Generated output directories
 /output/
 /build/
+/.codex-slide-build/
 
 # macOS metadata and editor backups
 .DS_Store
