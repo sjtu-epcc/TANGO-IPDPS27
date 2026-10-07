@@ -2,40 +2,43 @@
 \section{TANGO Methodology}
 \label{sec:tango-methodology}
 
-Fig.~\ref{fig:tango-overview} shows the design overview of \tango{}, which comprises a \dispatcher{} and a \allocator{}.
-At each iteration boundary, the two components coordinate request execution priority and per-step token allocation according to heterogeneous TTFT and TPOT SLOs.
-They take each request's SLOs, inference phase, and execution progress as input and produce a mixed batch of prefill chunks and decode tokens.
+Fig.~\ref{fig:tango-overview} shows the design overview of \tango{}, which comprises two components.
+The \dispatcher{} prioritizes requests according to phase-aware deadlines at the temporal level.
+The \allocator{} determines per-step prefill token budgets using a step-time model at the spatial level.
+At each iteration boundary, they jointly take each request's TTFT/TPOT SLOs, inference phase, and execution progress as input and produce a mixed batch of prefill chunks and decode tokens.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/tango-methodology/overview}
-  \caption{Design overview of \tango{}.}
+  \caption{Design overview of \tango{}. \textcolor{red}{del CHN, mark \ding{172}-\ding{174} in this figure.}}
   \label{fig:tango-overview}
+  \vspace{-3mm}
 \end{figure}
 
-The temporal scheduling challenge is to compare request urgency across inference phases.
-A request with an unfinished prefill must produce its first token within its TTFT budget, whereas a decoding request must sustain token-generation progress within its TPOT budget.
+The challenge for the request dispatcher at the temporal levelis to compare request urgency across inference phases.
+A request with an unfinished prefill should produce its first token within its TTFT budget, whereas a decoding request should sustain token-generation progress within its TPOT budget.
 The dispatcher maps these phase-specific requirements to comparable deadlines and updates request priorities as inference progresses.
-These priorities guide the admission of waiting requests and the preemption of less urgent ongoing requests under resource contention (Section~\ref{sec:deadline-aware-request-dispatcher}).
+These priorities guide the admission of waiting requests and the preemption of less urgent ongoing requests under resource contention s(Section~\ref{sec:deadline-aware-request-dispatcher}).
 
-The spatial scheduling challenge is to advance urgent prefills while limiting their interference with decoding requests.
-As shown in Section~\ref{subsec:motivation-underlying-reasons}, the total token count alone cannot reliably determine mixed-step execution time.
+The challenge for the token allocator at the spatial level is to advance urgent prefills while limiting their interference with decoding requests.
+As shown in Section~\ref{token-allocate-problem}, the total token count alone cannot reliably determine mixed-step execution time.
 The allocator therefore uses a step-time model to predict the duration of candidate batches from their prefill/decode composition and context-dependent attention work.
 It converts the remaining deadline slack of selected decode requests into a prefill token budget and distributes that budget according to the dispatcher's priorities (Section~\ref{sec:step-time-model-guided-token-allocator}).
 
-Specifically, \tango{} operates as follows.
-First, the scheduler collects the running requests' execution state, and the allocator derives a prefill token budget using the step-time model.
-Second, the dispatcher orders waiting requests by their phase-aware deadlines for admission alongside ongoing requests.
-If a waiting request cannot obtain KV-cache blocks, the dispatcher considers preempting the running request with the latest deadline, but proceeds only when the waiting request has an earlier deadline.
-The allocator applies the remaining token and time budgets to the prefill chunks of ongoing and newly admitted requests.
-Finally, the engine executes the resulting batch and returns token timestamps and request progress to update the next scheduling decision.
-Unfinished requests remain eligible for reconsideration at the next iteration boundary.
+Specifically, \tango{} works as follows.
+\ding{172} At each inference iteration, \tango{} collects running requests' execution state, and derives a prefill token budget using the step-time model.
+\ding{173} The dispatcher orders waiting requests by their phase-aware deadlines for admission alongside ongoing requests.
+If a waiting request (e.g., $R_4$) cannot be admitted because insufficient KV-cache memory blocks remain, the dispatcher preempts the running request with the latest deadline (e.g., $R_3$) when this request's deadline is earlier. Otherwise, the request remains queued.
+\ding{174} The allocator evaluates prefill chunks in the dispatcher's order and admits the largest chunk whose predicted mixed-step time and total token count satisfy their respective constraints.
+If the available time budget is exhausted before the prompt is complete, the remaining chunks are deferred to later iterations.
+% Any remaining prefill work is deferred to later iterations.
+\ding{175} The LLM engine executes the resulting batch and returns token timestamps and request progress to update the next scheduling decision.
+Unfinished requests will be rescheduled at the next iteration boundary.
 
-The example in Fig.~\ref{fig:tango-overview} illustrates how the two components cooperate.
-An urgent waiting request $r_4$ receives earlier admission, while a less urgent ongoing request can be preempted to release capacity.
+\begin{comment}
+We taken an example in Fig.~\ref{fig:tango-overview} to better illustrates how the two components cooperate.
+An urgent waiting request $R_4$ receives earlier admission, while a \textcolor{red}{less urgent ongoing request $R_3$?} can be preempted to release capacity.
 The allocator then determines how much of the admitted request's prompt can share a step with the active decode workload.
 When the decode requests have little remaining deadline slack, it limits the prefill chunk size and leaves the remaining prompt tokens for subsequent steps, even if the engine's maximum token capacity has not been exhausted.
 Thus, request urgency determines the service order, while predicted step time determines how much work can execute in that order.
-
-\input{section/deadline-aware-request-dispatcher}
-\input{section/step-time-model-guided-token-allocator}
+\end{comment}
