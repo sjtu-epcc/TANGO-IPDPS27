@@ -1,5 +1,5 @@
 % !TeX root = ../tango.tex
-\subsection{\dispatcher{}}
+\section{\dispatcher{}}
 \label{sec:deadline-aware-request-dispatcher}
 
 Figs.~\ref{fig:phase-aware-deadlines} and~\ref{fig:deadline-admission-preemption} illustrate the dispatcher, which uses phase-aware deadlines as a common priority signal for request admission and preemption.
@@ -12,7 +12,7 @@ In this section, we first introduce phase-aware deadline construction (Fig.~\ref
   \label{fig:phase-aware-deadlines}
 \end{figure}
 
-\subsubsection{Phase-Aware Request Ordering}
+\subsection{Phase-Aware Request Ordering}
 \label{subsec:phase-aware-request-ordering}
 
 As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, arrival order does not reflect the different latency budgets of waiting requests.
@@ -48,7 +48,7 @@ Admission remains subject to the engine's sequence and memory limits and the tok
 In Fig.~\ref{fig:deadline-admission-preemption}, $r_4$ with $D_4=60$~ms is considered before $r_5$ with $D_5=200$~ms.
 This ordering allows requests with later deadlines to absorb more queueing delay, giving earlier service to more urgent requests without changing their total prefill work.
 
-\subsubsection{Deadline-Aware Preemption}
+\subsection{Deadline-Aware Preemption}
 \label{subsec:deadline-aware-preemption}
 
 \begin{figure}[t]

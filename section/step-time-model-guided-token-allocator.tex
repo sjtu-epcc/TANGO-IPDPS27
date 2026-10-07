@@ -1,5 +1,5 @@
 % !TeX root = ../tango.tex
-\subsection{\allocator{}}
+\section{\allocator{}}
 \label{sec:step-time-model-guided-token-allocator}
 
 Fig.~\ref{fig:token-allocator-workflow} shows how the allocator determines the amount of prefill work that can share an engine step with the active decode workload.
@@ -13,7 +13,7 @@ In this section, we first introduce the model, then explain how heterogeneous TT
   \label{fig:token-allocator-workflow}
 \end{figure}
 
-\subsubsection{Step-Time Modeling}
+\subsection{Step-Time Modeling}
 \label{subsec:step-time-modeling}
 
 As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, batches with the same total token count can have substantially different execution times.
@@ -48,7 +48,7 @@ Consequently, equal-sized chunks can consume different amounts of the step-time 
 The coefficients are fitted from profiled engine steps for the deployed model and hardware configuration.
 At runtime, prediction requires only these four workload statistics and a few arithmetic operations.
 
-\subsubsection{Joint TTFT/TPOT Budgeting}
+\subsection{Joint TTFT/TPOT Budgeting}
 \label{subsec:joint-slo-budgeting}
 
 At the beginning of step $k$, the allocator summarizes the active decode workload as $d_k=\lvert\mathcal{D}_k\rvert$ and $K_k^{\mathrm{dec}}=\sum_{r_i\in\mathcal{D}_k}H_{i,k}$.
@@ -107,7 +107,7 @@ Once the decode workload and candidate order are fixed, only the admitted prefil
 If even a decode-only step exceeds the selected time budget, the allocator sets the additional prefill allocation to zero and allows decode requests to continue making progress.
 The inequality provides a model-based scheduling target whose accuracy depends on the fitted predictor.
 
-\subsubsection{Token Allocation Workflow}
+\subsection{Token Allocation Workflow}
 \label{subsec:token-allocation-workflow}
 
 Fig.~\ref{fig:token-allocator-workflow} illustrates the interaction between the scheduler and allocator.

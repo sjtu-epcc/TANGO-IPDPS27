@@ -3,13 +3,13 @@
 \label{sec:tango-methodology}
 
 Fig.~\ref{fig:tango-overview} shows the design overview of \tango{}, which comprises a \dispatcher{} and a \allocator{}.
-At each iteration boundary, the two components coordinate request execution priority and per-step token allocation according to heterogeneous TTFT and TPOT objectives.
+At each iteration boundary, the two components coordinate request execution priority and per-step token allocation according to heterogeneous TTFT and TPOT SLOs.
 They take each request's SLOs, inference phase, and execution progress as input and produce a mixed batch of prefill chunks and decode tokens.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/tango-methodology/overview}
-  \caption{Design overview of \tango{}.}
+  \caption{Design overview of \tango{}. \textcolor{red}{del CHN}}
   \label{fig:tango-overview}
 \end{figure}
 
