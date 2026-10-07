@@ -21,6 +21,7 @@ The predictor must therefore account for both batch composition and context-depe
 Let $p$ and $d$ denote the numbers of prefill and decode tokens, respectively, $K^{\mathrm{dec}}$ the sum of context lengths accessed by decode requests, and $A^{\mathrm{pre}}$ the effective attention work of prefill chunks.
 These four inputs feed the time cost model in Fig.~\ref{fig:token-allocator-workflow}, which estimates the step duration as
 \begin{equation}
+\small
   \widehat{L}\!\left(p,d,K^{\mathrm{dec}},A^{\mathrm{pre}}\right)
   = \alpha + \beta p + \gamma d
     + \delta K^{\mathrm{dec}} + \epsilon A^{\mathrm{pre}}.
@@ -36,6 +37,7 @@ For chunked prefill, the attention work depends on both the new chunk and its ex
 Let $H_{i,k}$ be the already-computed context length available to request $r_i$ before step $k$.
 Using the chunk sizes $c_{i,k}$ defined in Eq.~\ref{eq:step-token-budget}, we approximate the attention work as
 \begin{equation}
+  \small
   A_k^{\mathrm{pre}} =
   \sum_{r_i\in\mathcal{P}_k}
     c_{i,k}\left(H_{i,k}+\frac{c_{i,k}}{2}\right).
@@ -58,6 +60,7 @@ A fixed decode percentile can leave urgent prefills with insufficient service ev
 To account for this tradeoff, the allocator compares the remaining fractions of the two latency budgets.
 At scheduling time $\tau_k$, these fractions are
 \begin{equation}
+\small
   \begin{aligned}
     u_{i,k}^{\mathrm{TTFT}} &=\frac{D_i-\tau_k}{S_i^{\mathrm{TTFT}}},
       && q_i=0, \\
@@ -75,6 +78,7 @@ Let $\operatorname{Quantile}_{\rho_k}$ select a deadline at percentile $\rho_k$ 
 Denote the selected deadline by $D_k^{\mathrm{bind}}$, shown as $D_{\mathrm{bind}}$ in Fig.~\ref{fig:token-allocator-workflow}.
 The time available for the next step is
 \begin{equation}
+  \small
   \begin{aligned}
     D_k^{\mathrm{bind}} &=
     \operatorname{Quantile}_{\rho_k}
@@ -89,6 +93,7 @@ If $\Delta_k\leq0$, it admits no prefill tokens in this step.
 
 For a positive time budget, the allocator seeks the largest feasible prefill allocation:
 \begin{equation}
+  \small
   \begin{aligned}
     p_k^\star &= \max_{p\in\mathbb{Z}_{\geq0}} p, \\
     \text{s.t.}\quad p+d_k &\leq B_{\max}, \\

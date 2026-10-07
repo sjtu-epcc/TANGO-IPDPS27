@@ -21,6 +21,7 @@ Our key idea is to express these phase-specific objectives as an effective deadl
 Let $q_i$ denote the number of output tokens already returned by request $r_i$.
 Using the timestamps and SLOs defined in Section~\ref{sec:multi-slo-llm-serving}, its current deadline is
 \begin{equation}
+\small
   D_i =
   \begin{cases}
     a_i + S_i^{\mathrm{TTFT}}, & q_i = 0, \\
@@ -61,6 +62,7 @@ During continuous batching, a new or resumed request may fail to obtain the KV-c
 The dispatcher then uses the same deadline representation to identify a running request that can yield memory.
 For the current running set $\mathcal{R}_k$, it selects the candidate victim as
 \begin{equation}
+\small
   v = \operatorname*{arg\,max}_{i:\,r_i \in \mathcal{R}_k}
       \left(D_i, a_i\right),
   \label{eq:deadline-preemption-victim}
