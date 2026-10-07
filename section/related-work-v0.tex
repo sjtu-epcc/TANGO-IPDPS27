@@ -1,0 +1,53 @@
+% !TeX root = ../tango.tex
+\section{Related Work}
+\label{sec:related-work}
+
+\begin{table}[t]
+  \renewcommand{\arraystretch}{1}
+  \setlength{\tabcolsep}{1.5pt}
+  \caption{Comparison of \tango{} with representative serving systems.}
+  \label{tab:related-work-comparison}
+  \centering
+  \scriptsize
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \bfseries & \textbf{\makecell{Continuous\\Batching}} & \textbf{\makecell{Heterogeneous\\SLOs}} & \textbf{\makecell{Runtime\\Reprioritization}} & \textbf{\makecell{Predictive Token\\Budgeting}} \\
+    \hline
+    \bfseries vLLM & \cellcolor{FadedFlora}\CheckmarkBold & & & \\
+    \hline
+    \bfseries SOLA & \cellcolor{FadedFlora}\CheckmarkBold & & \cellcolor{FadedFlora}\CheckmarkBold & \\
+    \hline
+    \bfseries JITServe & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \\
+    \hline
+    \bfseries \tango{} & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold \\
+    \hline
+  \end{tabular}
+  }
+  \vspace{-3mm}
+\end{table}
+
+\textbf{LLM Serving Systems.}
+Recent studies have developed efficient LLM serving systems that improve inference throughput and latency through scheduling and memory optimizations.
+Orca introduced iteration-level scheduling, allowing requests to enter and leave a batch between decoding iterations to improve both utilization and responsiveness.
+vLLM further improved serving throughput through PagedAttention, which reduces KV-cache fragmentation and enables flexible memory sharing across requests.
+SGLang exploits prefix sharing and structured execution to accelerate multi-call LLM workloads.
+These systems establish continuous batching and efficient memory management as the foundation of modern LLM serving.
+However, throughput-oriented schedulers commonly use an SLO-agnostic request order and a fixed upper bound on the number of tokens processed in each iteration, without adapting either decision to the heterogeneous TTFT and TPOT requirements of individual requests.
+
+
+\textbf{Prefill--Decode Scheduling.}
+The prefill and decode phases exhibit distinct execution characteristics: prefill processes many prompt tokens in parallel, whereas decode repeatedly processes one token per request.
+Mixing the two phases improves GPU utilization but can prolong an iteration and delay the next tokens of ongoing requests.
+Sarathi-Serve mitigates this interference through chunked prefill and stall-free batching, using decode-maximal batches to improve serving capacity under tail-latency constraints.
+DistServe instead places prefill and decode on different GPUs and separately optimizes their resource allocation and parallelism under TTFT and TPOT constraints.
+These approaches regulate interference through configured chunk sizes, phase-level batching policies, or resource separation.
+They do not directly translate the remaining latency slack of active requests into an iteration-specific token budget for a colocated mixed batch.
+
+
+\textbf{SLO-Aware LLM Serving.}
+Recent systems explicitly optimize the fraction of requests satisfying latency SLOs rather than raw throughput alone.
+SOLA formulates a fine-grained scheduling space that adjusts both request execution order and iteration workload according to request and system states, thereby balancing TTFT and TPOT.
+JITServe estimates uncertain request characteristics and allocates each request sufficient serving bandwidth while grouping compatible requests to improve batch efficiency and goodput.
+However, existing systems do not adjust the per-step token allocation within a mixed batch according to the request-specific TTFT and TPOT slack.
+Table~\ref{tab:related-work-comparison} compares \tango with representative serving systems.
