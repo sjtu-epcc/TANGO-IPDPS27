@@ -50,7 +50,7 @@ The step's total token count is
   \label{eq:step-token-budget}
 \end{equation}
 where each decode request contributes one token and $B_{\max}$ is the maximum per-step token budget.
-The resulting \textit{queueing delay} and \textit{\textcolor{red}{per-step interval} between decoding iterations} decide whether each request meets its TTFT and TPOT SLOs.
+The resulting \textit{queueing delay} and \textit{step duration} decide whether each request meets its TTFT and TPOT SLOs.
 
 
 
@@ -110,14 +110,15 @@ Other sending rates and SLO settings are also explored in Sections~\ref{subsec:s
       \hline
       & \textbf{Specifications} \\
       \hline
-      \textbf{Hardware} & \makecell[c]{\textcolor{red}{$2\times$ Intel Xeon Gold 6530 CPUs, 64 physical cores} \\
+      \textbf{Hardware} & \makecell[c]{Intel Xeon Gold 6530 CPUs, 64 physical cores \\
         128 logical threads, 256 GiB host RAM \\
-      $4\times$ RTX 6000 Ada GPUs (48 GB each)} \\
+        $4\times$ RTX 6000 Ada GPUs (48 GB each) \\
+        $8\times$ NVIDIA A800 GPUs (80 GB each)} \\
       \hline
-      \textbf{Software} & \makecell[c]{\textcolor{red}{meta-llama/Llama-3.1-8B}
-        ,Qwen/Qwen3-14B,\\Qwen/Qwen3-32B
-        ;
-      LMSYS-Chat-1M, \\GSM8K, AgentWorldBench-SWE, BurstGPT} \\
+      \textbf{Software} & \makecell[c]{Llama-3.1-8B, Qwen3-14B, Qwen3-32B,\\
+        Llama-3.1-70B, Qwen3-Next-80B-A3B-Instruct;\\
+        LMSYS-Chat-1M, GSM8K,\\
+        AgentWorldBench-SWE, BurstGPT} \\
       \hline
     \end{tabular}%
   % }
@@ -141,10 +142,10 @@ Other sending rates and SLO settings are also explored in Sections~\ref{subsec:s
     \textbf{TPOT (\%)} &
     \textbf{Joint (\%)} \\
     \hline
-    Overall          & \textbf{75.80} & \textbf{77.68} & \textbf{53.48} \\
+    Overall          & \textbf{76.57} & \textbf{75.44} & \textbf{53.72} \\
     TTFT-prioritized & 48.89 & 100.00 & 48.89 \\
     TPOT-prioritized & 100.00 & 12.00 & 12.00 \\
-    \textcolor{red}{Balanced}         & 57.39 & 100.00 & 57.39 \\
+    Balanced         & 57.39 & 89.77 & 53.98 \\
     Relaxed          & 100.00 & 100.00 & 100.00 \\
     \hline
   \end{tabular}
@@ -157,12 +158,13 @@ We run Qwen3-14B with TP${}={}$2 on two GPUs using the configuration in Table~\r
 We use the math workload as a representative case and replay it at its stress load of $1.2\lambda_{90}$.
 
 Table~\ref{tab:fcfs-multi-slo-attainment} shows the SLO attainment rates for the math workload.
-Under FCFS, the overall TTFT and TPOT attainment rates are 75.80\% and 77.68\%, respectively, but only 53.48\% of them satisfy both SLO objectives.
+The overall rates are weighted by the number of requests in each SLO class.
+Under FCFS, the overall TTFT and TPOT attainment rates are 76.57\% and 75.44\%, respectively, but only 53.72\% of them satisfy both SLO objectives.
 The gap between individual and joint attainment shows that satisfying either latency SLO alone does not provide effective Multi-SLO service.
 
 The class-level results further reveal distinct failure modes.
 TTFT-prioritized requests achieve 48.89\% TTFT attainment and 100.00\% TPOT attainment, whereas TPOT-prioritized requests achieve 100.00\% and 12.00\%, respectively.
-Balanced and relaxed requests attain both objectives for 57.39\% and 100.00\% of their requests, respectively.
+Balanced and relaxed requests attain both objectives for 53.98\% and 100.00\% of their requests, respectively.
 The contrasting class-level results indicate that the low joint attainment cannot be attributed to a single global latency bottleneck.
 
 The above results reveal a mismatch between throughput-oriented scheduling and request-specific latency SLOs.
@@ -181,7 +183,7 @@ Our investigation identifies the following two complementary causes of the low M
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.94\columnwidth]{figures/background-and-motivation/moti_queue_slo}
-\caption{Normalized TTFT and queueing time under FCFS. \textcolor{red}{TTFT-prioritized}}
+\caption{Normalized TTFT and queueing time under FCFS.}
 \label{fig:temporal-slo-ratio}
 \end{figure}
 
@@ -195,7 +197,7 @@ The first-token latency of request $r_i$ is decomposed as
 where $W_i^{\mathrm{queue}}$ is the delay from arrival until the request is first admitted for prefill, and $L_i^{\mathrm{prefill}}$ is the remaining latency until its first token is produced.
 For a chunked prefill, $L_i^{\mathrm{prefill}}$ includes the execution and intervening scheduling delays of all prompt chunks after admission.
 
-Fig.~\ref{fig:temporal-slo-ratio} plots TTFT and queueing time for the first \textcolor{red}{3,001 math requests}, normalized by each request's TTFT SLO.
+Fig.~\ref{fig:temporal-slo-ratio} plots TTFT and queueing time for the first 3,000 math requests, normalized by each request's TTFT SLO.
 Solid and dashed lines denote TTFT and queueing time, respectively, and the dash-dotted line marks the SLO boundary.
 % The Strict TTFT and Strict TPOT panels correspond to the TTFT-prioritized and TPOT-prioritized classes, respectively.
 We can observe that the normalized queueing-time curve closely follows the TTFT curve in all four SLO classes, indicating that queueing latency dominates.
@@ -224,7 +226,7 @@ For an active decode request, the time interval before its next token is determi
 Reordering waiting requests alone cannot protect TPOT because a decode token may still share a step with a large prefill chunk.
 
 To quantify this interference, we vary the numbers of prefill tokens $p$ and decode tokens $d$ scheduled in the same step and measure the mean step time, as shown in Fig.~\ref{fig:spatial-pd-grid}.
-Each case is measured on Qwen3-14B with TP${}={}$2 over \textcolor{red}{50 timed steps (5 rounds $\times$ 10 measurements)}, and gray cells exceed the maximum per-step token budget.
+Each case is measured on Qwen3-14B with TP${}={}$2, and gray cells exceed the maximum per-step token budget.
 Shown in the blue outline, when $d=2{,}048$, increasing $p$ from 0 to 2,048 increases the mean step time from 329\,ms to 759\,ms.
 Every active decode request has to wait for the longer step to complete before receiving its next token, directly increasing its TPOT.
 

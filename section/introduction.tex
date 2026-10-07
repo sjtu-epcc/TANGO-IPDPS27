@@ -9,11 +9,15 @@ For example, interactive chat prioritizes a fast first token generation, while r
 % Some requests are sensitive to the latency before the first output token, as in interactive chat, whereas others are sensitive to the latency between consecutive output tokens, as in real-time translation.
 These latency requirements correspond to two phases of LLM inference. During \emph{prefill}, the model processes the prompt and generates the first output token, measured by the time to first token (TTFT).
 During autoregressive \emph{decode}, it generates subsequent tokens one at a time, measured by the time per output token (TPOT).
+\textcolor{blue}{These two phases can execute on separate GPU pools (disaggregation) or share the same GPUs (colocation).}
 % Online serving systems should therefore improve the goodput while meeting the application-specific TTFT and TPOT Service-Level Objectives (SLOs).
 
 
 Facing such a scenario, LLM serving should \textit{improve the goodput while meeting the TTFT and TPOT Service-Level Objectives (SLOs)} for requests with heterogeneous latency requirements.
-To this end, current serving systems combine continuous batching, which dynamically admits new requests into the active batch between iterations, with chunked prefill, which divides long prompts into smaller segments that can be processed alongside decoding requests.
+\textcolor{blue}{Disaggregation partitions GPU resources by phase, limiting fine-grained resource sharing between phases.}
+\textcolor{blue}{Under heterogeneous SLOs, urgent work in one phase may remain queued despite spare capacity in the other, since using that capacity requires reallocating resources between the two pools.}
+\textcolor{blue}{In contrast, representative SLO-aware systems such as SOLA and JITServe adopt colocation to flexibly share resources and improve goodput.}
+\textcolor{blue}{Under colocation,} current serving systems combine continuous batching, which dynamically admits new requests into the active batch between iterations, with chunked prefill, which divides long prompts into smaller segments that can be processed alongside decoding requests.
 Both techniques 
 % improve GPU utilization and serving efficiency and is
 are adopted by state-of-the-art LLM serving engines such as vLLM and SGLang.
@@ -46,7 +50,7 @@ From our invesitgations with vLLM on Qwen3-14B model using the mathematical-reas
 % For requests with tight TPOT SLOs, joint SLO attainment is similarly low at 12.00\%, with TPOT violations as the main cause.
 % Across the workload, 
 % Across the workload, 
-only 53.48\% of requests satisfy both their TTFT and TPOT SLOs.
+only 53.72\% of requests satisfy both their TTFT and TPOT SLOs.
 % and the goodput is decreased by aa.a\% compared to the oracle goodput that xxxx如何获取的.
 % This low joint attainment highlights the limitations of SLO-unaware scheduling under heterogeneous latency requirements.
 The low SLO atteinment stems from the inefficiencies from both the temporal and spatial scheduling aspect.

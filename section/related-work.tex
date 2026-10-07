@@ -2,38 +2,6 @@
 \section{Related Work}
 \label{sec:related-work}
 
-\begin{table}[t]
-  \renewcommand{\arraystretch}{1.2}
-  \setlength{\tabcolsep}{2pt}
-  \caption{Scheduling capabilities of representative colocated serving systems.}
-  \label{tab:related-work-comparison}
-  \centering
-  \scriptsize
-  \resizebox{\columnwidth}{!}{%
-  \begin{tabular}{|l|c|c|c|c|c|}
-    \hline
-    \textbf{System} &
-    \textbf{\makecell{Continuous\\Batching}} &
-    \textbf{\makecell{Chunked\\Prefill}} &
-    \textbf{\makecell{Heterogeneous\\SLOs}} &
-    \textbf{\makecell{Request-Specific\\SLO Prioritization}} &
-    \textbf{\makecell{Deadline-Aware\\Token Allocation}} \\
-    \hline
-    \bfseries vLLM & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & -- & -- & -- \\
-    \hline
-    \bfseries Sarathi-Serve & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & -- & -- & -- \\
-    \hline
-    \bfseries SOLA & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & -- & -- & -- \\
-    \hline
-    \bfseries JITServe & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & -- \\
-    \hline
-    \bfseries \tango{} & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold & \cellcolor{FadedFlora}\CheckmarkBold \\
-    \hline
-  \end{tabular}%
-  }
-  \vspace{-3mm}
-\end{table}
-
 \textbf{SLO-Agnostic LLM Serving.}
 Existing LLM serving systems improved throughput and latency through efficient batching and memory management.
 Orca introduced iteration-level scheduling, which allowed requests to enter and leave a batch between decoding iterations.
@@ -41,18 +9,15 @@ vLLM introduced PagedAttention to reduce KV-cache fragmentation and support flex
 SGLang exploited prefix reuse through RadixAttention and optimized the execution of structured language model programs.
 However, these works optimized batching and memory efficiency without explicitly accounting for each request's TTFT and TPOT objectives in scheduling.
 
-\textbf{SLO-Aware Temporal Request Scheduling.}
+\textbf{Temporal Request Scheduling.}
 SLO-aware temporal schedulers used latency requirements to decide which requests received service.
 SOLA adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for both TTFT and TPOT.
 However, its shared TTFT and average-TPOT targets could not directly express heterogeneous request SLOs, and its token budgeting did not explicitly enforce individual next-token deadlines.
-For requests with heterogeneous SLOs, JITServe progressively refined estimates of output lengths and request dependencies to prioritize requests by their expected goodput and the serving bandwidth required to meet their SLOs, and grouped requests with similar input lengths to improve batching efficiency.
-However, this request-specific SLO prioritization operated at the inter-request level without explicitly accounting for intra-batch prefill--decode contention.
+\textcolor{blue}{For requests with heterogeneous SLOs, JITServe used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide serving bandwidth allocation.}
+\textcolor{blue}{However, overestimating output lengths could reserve excess capacity, while underestimating them could leave insufficient bandwidth to meet request SLOs.}
 
 \textbf{Spatial Prefill--Decode Scheduling.}
 Existing approaches mitigated prefill--decode interference through resource separation or control of batch workloads.
 DistServe placed prefill and decode on separate GPUs to eliminate interference and independently optimized their resource allocation and parallelism to meet TTFT and TPOT requirements.
 Sarathi-Serve instead split long prompts into smaller prefill chunks and batched them with ongoing decode requests under a fixed token budget to reduce interference.
 However, these approaches relied on phase-level resource partitioning or fixed token budgets, limiting their ability to accommodate heterogeneous TTFT and TPOT requirements.
-
-
-Table~\ref{tab:related-work-comparison} compares \tango{} with representative works.
