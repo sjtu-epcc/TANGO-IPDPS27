@@ -185,8 +185,8 @@ Our investigation identifies the following two complementary causes of the low M
 \label{fig:temporal-slo-ratio}
 \end{figure}
 
-\subsubsection{TTFT-SLO-unaware temporal request dispatching}
-The first-token latency of request $r_i$ can be decomposed as
+\subsubsection{Temporal Request Dispatch with TTFT SLO Unawareness}
+The first-token latency of request $r_i$ is decomposed as
 \begin{equation}
 \small
 \mathrm{TTFT}_i = W_i^{\mathrm{queue}} + L_i^{\mathrm{prefill}},
@@ -208,7 +208,7 @@ A TTFT-prioritized request may wait behind earlier requests whose looser objecti
 %  the urgent request exhausts its latency budget in the queue while those ahead of it still finish within their SLOs.
 
 The temporal scheduling problem is thus to determine \emph{which request} should receive prefill service first.
-Accounting for the remaining TTFT slack can redistribute queueing delay toward requests that can tolerate it, without changing the total amount of prefill work.
+Accounting for the remaining TTFT slack can redistribute queueing latency toward requests that can tolerate it, without changing the total amount of prefill work.
 
 \begin{figure}[!t]
 \centering
@@ -217,15 +217,16 @@ Accounting for the remaining TTFT slack can redistribute queueing delay toward r
 \label{fig:spatial-pd-grid}
 \end{figure}
 
-\noindent\textbf{2) Workload-unaware spatial scheduling.}
-The second failure mode arises after requests enter the running batch.
-For an active decode request, the interval before its next token is determined by the duration of the engine step in which that token is scheduled.
+% \subsubsection{Workload-unaware spatial scheduling}
+\subsubsection{Spatial Token Allocation with a Fixed Budget}
+% The second failure mode arises after requests enter the running batch.
+For an active decode request, the time interval before its next token is determined by the duration of the engine step in which that token is scheduled.
 Reordering waiting requests alone cannot protect TPOT because a decode token may still share a step with a large prefill chunk.
 
-To quantify this interference, we vary the numbers of prefill tokens $p$ and decode tokens $d$ scheduled in the same step and measure the mean step time.
-Each configuration is measured on Qwen3-14B with TP${}={}$2 over 50 timed steps (5 rounds $\times$ 10 measurements); gray cells exceed the maximum per-step token budget.
-As highlighted by the blue outline in Fig.~\ref{fig:spatial-pd-grid}, when $d=2{,}048$, increasing $p$ from 0 to 2,048 increases the mean step time from 329\,ms to 759\,ms.
-Every active decode request must wait for the longer step to complete before receiving its next token, directly increasing its TPOT.
+To quantify this interference, we vary the numbers of prefill tokens $p$ and decode tokens $d$ scheduled in the same step and measure the mean step time, as shown in Fig.~\ref{fig:spatial-pd-grid}.
+Each case is measured on Qwen3-14B with TP${}={}$2 over \textcolor{red}{50 timed steps (5 rounds $\times$ 10 measurements)}, and gray cells exceed the maximum per-step token budget.
+Shown in the blue outline, when $d=2{,}048$, increasing $p$ from 0 to 2,048 increases the mean step time from 329\,ms to 759\,ms.
+Every active decode request has to wait for the longer step to complete before receiving its next token, directly increasing its TPOT.
 
 More importantly, the total token count alone does not determine step time.
 Along the green boundary where $p+d=4{,}096$, the pure-prefill and pure-decode configurations take 611\,ms and 683\,ms, respectively, while mixed configurations reach up to 799\,ms.
@@ -233,7 +234,8 @@ Thus, the same total token budget produces about a $1.3\times$ difference in lat
 This nonlinearity reflects the distinct execution characteristics of compute-intensive prefill and memory-intensive decode, together with their interference when colocated in one iteration.
 Consequently, enforcing only $p+d\leq B_{\max}$ bounds the amount of scheduled work but cannot reliably bound the wall-clock latency experienced by active decode requests.
 
-The spatial scheduling problem is therefore to determine \emph{how many prefill tokens} can safely share the next step with the current decode workload.
+The spatial scheduling problem is thus to determine \emph{how many prefill tokens} can safely share the next step with the current decode workload.
 This requires an estimate of mixed-step latency and a mechanism that converts the remaining TPOT slack of active requests into a safe prefill allocation.
+
 Temporal request ordering and spatial token allocation address different failure modes: optimizing either dimension alone leaves the other source of SLO violations unresolved.
 These observations motivate their joint design in \tango{}.
