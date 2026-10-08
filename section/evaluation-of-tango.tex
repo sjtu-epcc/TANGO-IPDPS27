@@ -16,7 +16,9 @@ Each RTX 6000 Ada has 48\,GB of GPU memory.
 Moreover, we use four SLO classes (TTFT-prioritized, TPOT-prioritized, balanced, and relaxed) for each model.
 
 We use the LLM serving systems vLLM, SOLA, and JITServe as baselines.
-vLLM employs FCFS admission and a fixed maximum per-step token budget, without differentiating request-specific TTFT and TPOT objectives.
+\textcolor{blue}{We evaluate two vLLM variants: vLLM-Colocated executes prefill and decode on the same GPUs, allowing prefill chunks and decode tokens to share a batch, whereas vLLM-Disaggregated executes the two phases on separate GPU pools.}
+\textcolor{blue}{The disaggregated variant is evaluated for the 14B and 32B models; it cannot run in the single-GPU configuration used for the 8B model.}
+\textcolor{blue}{vLLM-Colocated employs FCFS admission and a fixed maximum per-step token budget, without differentiating request-specific TTFT and TPOT objectives.}
 SOLA adjusts both request execution order and iteration workload according to request and system states to improve SLO attainment.
 JITServe estimates uncertain request characteristics and allocates serving bandwidth to individual requests, while grouping compatible requests to improve batching efficiency.
 Since SOLA's source code is not publicly available and JITServe uses a different vLLM version, we reimplement SOLA's scheduling mechanisms and port those of JITServe to vLLM 0.17.0.
@@ -31,16 +33,20 @@ Goodput measures the number of such requests completed per second.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/evaluation/slo-attainment-and-goodput.pdf}
-  \caption{The overall SLO attainment and goodput of \tango{}, vLLM, SOLA, and JITServe in various scenarios.}
+  \includegraphics[width=\columnwidth]{figures/evaluation/new_experiment_combined_pd.pdf}
+  \caption{\textcolor{blue}{The overall SLO attainment and goodput of \tango{}, vLLM-Colocated, vLLM-Disaggregated, SOLA, and JITServe in various scenarios. Purple crosses indicate that vLLM-Disaggregated cannot run in the single-GPU 8B configuration.}}
   \label{fig:slo-attainment-and-goodput}
 \end{figure}
 
 We first evaluate \tango{} on overall SLO attainment and goodput.
 Each workload is evaluated on the 8B, 14B, and 32B models.
-For each model--workload combination, we replay the trace at $1.2\lambda_{90}$, where $\lambda_{90}$ is the sending rate at which vLLM achieves 90\% SLO attainment for that combination.
+For each model--workload combination, we replay the trace at $1.2\lambda_{90}$, where $\lambda_{90}$ is the sending rate at which \textcolor{blue}{vLLM-Colocated} achieves 90\% SLO attainment for that combination.
 All systems use the same request sequence, arrival schedule, and SLO targets.
 Fig.~\ref{fig:slo-attainment-and-goodput} shows the results for all nine model--workload combinations.
+
+\textcolor{blue}{vLLM-Disaggregated achieves substantially lower overall SLO attainment and goodput than vLLM-Colocated in all six evaluated combinations of the 14B and 32B models and the three workloads.}
+\textcolor{blue}{Given this consistently poorer performance, we use the stronger vLLM-Colocated variant to represent vLLM in all subsequent experiments.}
+\textcolor{blue}{Accordingly, all improvement figures reported below relative to vLLM use vLLM-Colocated as the baseline, and vLLM denotes this colocated variant throughout the remainder of the evaluation.}
 
 As observed, \tango{} achieves the highest overall SLO attainment and goodput in all test cases.
 Across the nine cases, the average increases in SLO attainment are 23.37\%, 21.52\%, and 15.48\% compared with vLLM, SOLA, and JITServe, respectively.
