@@ -2,127 +2,104 @@
 \section{\allocator{}}
 \label{sec:step-time-model-guided-token-allocator}
 
-Fig.~\ref{fig:token-allocator-workflow} shows how the allocator determines the amount of prefill work that can share an engine step with the active decode workload.
-Its key idea is to translate the remaining next-token time budget into a prefill token allocation using a fitted step-time model.
-In this section, we first introduce the model, then explain how heterogeneous TTFT and TPOT objectives guide budgeting, and finally describe the allocation workflow.
+\subsection{Objective of the Token Allocator}
+\label{subsec:token-allocation-objective}
+
+The allocator decides how many prefill tokens can execute alongside the active decode requests in each step.
+More prefill work advances first-token generation, but also lengthens the step and delays the next decode tokens.
+Our goal is therefore to admit as much prefill work as possible within the time available for the step.
+
+For step $k$, let $d_k$ be the number of active decode tokens and $p$ a candidate prefill allocation drawn from pending requests in the dispatcher's order.
+Denote the predicted duration of the mixed step by $\widehat{L}_k(p)$ and its time budget by $\Delta_k$.
+The allocator selects
+\begin{equation}
+  \begin{aligned}
+    p_k^\star &= \max_{p\in\mathbb{Z}_{\geq0}} p, \\
+    \text{s.t.}\quad \widehat{L}_k(p) &\leq \Delta_k,
+      \quad p+d_k \leq B_{\max},
+  \end{aligned}
+  \label{eq:model-guided-prefill-budget}
+\end{equation}
+where $B_{\max}$ is the engine's maximum per-step token budget.
+The two constraints correspond to the time and token limits in Fig.~\ref{fig:token-allocator-workflow}.
+This decision requires two ingredients: a fitted model to predict how long a candidate batch takes (Section~\ref{subsec:step-time-modeling}), and a time budget derived from the requests' latency objectives (Section~\ref{subsec:joint-slo-budgeting}).
+Together, they turn the available time into a prefill chunk size.
+
+
+\subsection{Fitting the Step-Time Model $\widehat{L}_k$}
+\label{subsec:step-time-modeling}
+
+The first ingredient is $\widehat{L}_k(p)$, which predicts the duration of the entire mixed step.
+As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, equal token counts can incur different execution times because batch composition and context lengths change the computation and KV-cache access costs.
+We therefore fit a model using the four workload statistics shown in Fig.~\ref{fig:token-allocator-workflow}: prefill token count $p$, decode token count $d_k$, total context length accessed by decode requests $K_k^{\mathrm{dec}}$, and total prefill attention work $A_k^{\mathrm{pre}}(p)$.
+The model is
+\begin{equation}
+  \begin{aligned}
+    \widehat{L}_k(p) &= \alpha_1 + \alpha_2 p + \alpha_3 d_k \\
+      &\quad + \alpha_4 K_k^{\mathrm{dec}}
+      + \alpha_5 A_k^{\mathrm{pre}}(p).
+  \end{aligned}
+  \label{eq:step-time-model}
+\end{equation}
+We obtain all five coefficients $\alpha_1,\ldots,\alpha_5$ by fitting offline profiling samples from the deployed model and hardware configuration, with the four workload statistics as inputs and measured step duration as the target.
+They are learned model coefficients, not manually chosen scheduling hyperparameters.
+The intercept captures fixed runtime cost, while the remaining terms account for token processing and context-dependent attention work.
+
+The inputs come from the decode state and candidate chunks in Fig.~\ref{fig:token-allocator-workflow}.
+The active decode requests determine $d_k$ and $K_k^{\mathrm{dec}}$.
+For prefill, a chunk of $c_{i,k}$ tokens following an already-computed prefix of $H_{i,k}$ tokens contributes approximately $c_{i,k}(H_{i,k}+c_{i,k}/2)$ attention work.
+Summing this quantity over the chunks included in $p$ gives $A_k^{\mathrm{pre}}(p)$.
+Thus, a chunk following a longer prefix can require more time even at the same token count.
+At runtime, the allocator substitutes these statistics into the fitted model as it considers different chunk sizes.
+With the decode workload and candidate order fixed, only $p$ varies in Eq.~\ref{eq:model-guided-prefill-budget}.
+
+\subsection{Deriving the Time Budget $\Delta_k$}
+\label{subsec:joint-slo-budgeting}
+
+The second ingredient is $\Delta_k$, which specifies how much time the mixed step may take.
+The decode state in Fig.~\ref{fig:token-allocator-workflow} provides the current time $\tau_k$ and next-token deadlines $\{D_i\}$ from the dispatcher.
+Given a target decode deadline $D_k^{\mathrm{target}}$, the available interval is
+\begin{equation}
+  \Delta_k = D_k^{\mathrm{target}}-\tau_k.
+  \label{eq:allocator-time-budget}
+\end{equation}
+This is the time-budget interval between $\tau$ and $D_{\mathrm{target}}$ in Fig.~\ref{fig:token-allocator-workflow}.
+It bounds the duration of the entire mixed step, including the decode work already accounted for by $\widehat{L}_k(p)$.
+
+By default, the allocator selects the earliest decode deadline.
+This limits prefill work according to the decode request whose next token is due first.
+However, always using this deadline can leave too little time for prefills approaching their TTFT deadlines.
+We therefore adapt the selected deadline percentile according to the relative urgency of TTFT and TPOT.
+A later percentile permits a longer step and more prefill work, while relaxing the target for decode requests with earlier deadlines.
+
+To compare urgency across different SLOs, we divide each request's remaining deadline slack by its corresponding TTFT or TPOT budget.
+The allocator takes the minimum fraction among requests awaiting their first token in the running set and waiting queue, and the minimum among active decode requests.
+When the TTFT minimum is smaller and the TPOT minimum is positive, the ratio of the TTFT minimum to the TPOT minimum determines the selected percentile: as this ratio decreases from one to zero, the percentile increases linearly from the earliest toward the latest decode deadline.
+The ratio is clipped to this range, and the percentile is recomputed at every step.
+Otherwise, the allocator retains the earliest decode deadline.
+
+The resulting $\Delta_k$ supplies the time constraint in Eq.~\ref{eq:model-guided-prefill-budget}.
+If it is nonpositive, or even a decode-only step exceeds it, no additional prefill tokens are admitted and decode requests continue subject to engine resource limits.
+When no active decode request contributes a TPOT deadline, allocation is limited by the remaining engine token capacity.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/tango-methodology/token-allocator-workflow.pdf}
+  \includegraphics[width=\columnwidth]{figures/tango-methodology/allocator.pdf}
   \caption{Execution workflow of the \allocator{}.}
   \label{fig:token-allocator-workflow}
   \vspace{-3mm}
 \end{figure}
 
-\subsection{Step-Time Modeling}
-\label{subsec:step-time-modeling}
-
-As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, batches with the same total token count can have substantially different execution times.
-The predictor must therefore account for both batch composition and context-dependent attention work.
-Let $p$ and $d$ denote the numbers of prefill and decode tokens, respectively, $K^{\mathrm{dec}}$ the sum of context lengths accessed by decode requests, and $A^{\mathrm{pre}}$ the effective attention work of prefill chunks.
-These four inputs feed the time cost model in Fig.~\ref{fig:token-allocator-workflow}, which estimates the step duration as
-\begin{equation}
-\small
-  \widehat{L}\!\left(p,d,K^{\mathrm{dec}},A^{\mathrm{pre}}\right)
-  = \alpha + \beta p + \gamma d
-    + \delta K^{\mathrm{dec}} + \epsilon A^{\mathrm{pre}}.
-  \label{eq:step-time-model}
-\end{equation}
-
-Each term approximates a different source of execution cost.
-The intercept $\alpha$ captures the fixed runtime cost of a step, while $\beta p$ and $\gamma d$ capture the token-dependent costs of prefill and decode computation.
-The term $\delta K^{\mathrm{dec}}$ accounts for decode attention's KV-cache reads, which grow with the total history accessed by decode tokens.
-Finally, $\epsilon A^{\mathrm{pre}}$ accounts for the attention computation performed by prefill chunks.
-
-For chunked prefill, the attention work depends on both the new chunk and its existing prefix.
-Let $H_{i,k}$ be the already-computed context length available to request $r_i$ before step $k$.
-Using the chunk sizes $c_{i,k}$ defined in Eq.~\ref{eq:step-token-budget}, we approximate the attention work as
-\begin{equation}
-  \small
-  A_k^{\mathrm{pre}} =
-  \sum_{r_i\in\mathcal{P}_k}
-    c_{i,k}\left(H_{i,k}+\frac{c_{i,k}}{2}\right).
-  \label{eq:prefill-attention-work}
-\end{equation}
-A single fresh prefill thus contributes approximately $p^2/2$, whereas a chunk following a long prefix incurs additional work proportional to that prefix length.
-Consequently, equal-sized chunks can consume different amounts of the step-time budget.
-The coefficients are fitted from profiled engine steps for the deployed model and hardware configuration.
-At runtime, prediction requires only these four workload statistics and a few arithmetic operations.
-
-\subsection{Joint TTFT/TPOT Budgeting}
-\label{subsec:joint-slo-budgeting}
-
-At the beginning of step $k$, the allocator summarizes the active decode workload as $d_k=\lvert\mathcal{D}_k\rvert$ and $K_k^{\mathrm{dec}}=\sum_{r_i\in\mathcal{D}_k}H_{i,k}$.
-Each decode request contributes its next-token deadline $D_i$ from Eq.~\ref{eq:phase-aware-deadline}.
-The allocator selects a binding deadline from this set using a configurable percentile $\rho_0\in[0,1]$.
-With $\rho_0=0$, the earliest deadline bounds the predicted step duration; a larger percentile selects a later deadline and permits more prefill work.
-
-A fixed decode percentile can leave urgent prefills with insufficient service even when increasing prefill work would improve first-token responsiveness.
-To account for this tradeoff, the allocator compares the remaining fractions of the two latency budgets.
-At scheduling time $\tau_k$, these fractions are
-\begin{equation}
-\small
-  \begin{aligned}
-    u_{i,k}^{\mathrm{TTFT}} &=\frac{D_i-\tau_k}{S_i^{\mathrm{TTFT}}},
-      && q_i=0, \\
-    u_{i,k}^{\mathrm{TPOT}} &=\frac{D_i-\tau_k}{S_i^{\mathrm{TPOT}}},
-      && q_i>0.
-  \end{aligned}
-  \label{eq:normalized-slo-slack}
-\end{equation}
-The allocator compares the minimum TTFT fraction among requests awaiting their first token in the running set and waiting queue with the minimum TPOT fraction among active decode requests.
-At each step, the allocator linearly maps a smaller clipped TTFT/TPOT ratio of these minima to a higher deadline percentile, defaulting to the earliest deadline when the TPOT minimum is nonpositive.
-
-Let $\operatorname{Quantile}_{\rho_k}$ select a deadline at percentile $\rho_k$ from the ordered decode deadlines.
-Denote the selected deadline by $D_k^{\mathrm{bind}}$, shown as $D_{\mathrm{bind}}$ in Fig.~\ref{fig:token-allocator-workflow}.
-The time available for the next step is
-\begin{equation}
-  \small
-  \begin{aligned}
-    D_k^{\mathrm{bind}} &=
-    \operatorname{Quantile}_{\rho_k}
-      \!\left(\{D_i:r_i\in\mathcal{D}_k\}\right), \\
-    \Delta_k &= D_k^{\mathrm{bind}}-\tau_k.
-  \end{aligned}
-  \label{eq:allocator-time-budget}
-\end{equation}
-The full prediction in Eq.~\ref{eq:step-time-model} is compared with $\Delta_k$, since fixed and decode-related costs are already included in the model.
-If no active decode request contributes a TPOT deadline, the allocator uses the remaining engine token capacity without an additional TPOT constraint.
-If $\Delta_k\leq0$, it admits no prefill tokens in this step.
-
-For a positive time budget, the allocator seeks the largest feasible prefill allocation:
-\begin{equation}
-  \small
-  \begin{aligned}
-    p_k^\star &= \max_{p\in\mathbb{Z}_{\geq0}} p, \\
-    \text{s.t.}\quad p+d_k &\leq B_{\max}, \\
-    \widehat{L}\!\left(p,d_k,K_k^{\mathrm{dec}},A_k^{\mathrm{pre}}(p)\right)
-      &\leq \Delta_k.
-  \end{aligned}
-  \label{eq:model-guided-prefill-budget}
-\end{equation}
-Here, $A_k^{\mathrm{pre}}(p)$ is computed from the candidate chunks in their scheduling order using Eq.~\ref{eq:prefill-attention-work}.
-Once the decode workload and candidate order are fixed, only the admitted prefill token count varies, making the budget search one-dimensional.
-If even a decode-only step exceeds the selected time budget, the allocator sets the additional prefill allocation to zero and allows decode requests to continue making progress.
-The inequality provides a model-based scheduling target whose accuracy depends on the fitted predictor.
-
-\subsection{Token Allocation Workflow}
+\subsection{Coordination with the Dispatcher}
 \label{subsec:token-allocation-workflow}
 
-Fig.~\ref{fig:token-allocator-workflow} illustrates the interaction between the scheduler and allocator.
-At each iteration boundary, the scheduler collects the active decode workload, next-token deadlines, and current time (\textcircled{\scriptsize 1}).
-The allocator uses this state to establish the time budget and evaluate the step-time model as prefill candidates are considered (\textcircled{\scriptsize 2}).
-The scheduler processes ongoing requests and presents waiting prefill candidates in the order determined by the dispatcher, together with their chunk lengths and existing context lengths (\textcircled{\scriptsize 3}).
-For each candidate, the allocator combines these prefill statistics with the decode workload and checks both constraints in Eq.~\ref{eq:model-guided-prefill-budget} to select a feasible chunk (\textcircled{\scriptsize 4}).
-The selected prefill tokens join the active decode tokens to form the mixed batch (\textcircled{\scriptsize 5}).
+Fig.~\ref{fig:token-allocator-workflow} brings the two ingredients together.
+At each iteration boundary, the dispatcher supplies the active decode state (\textcircled{\scriptsize 1}), from which the allocator derives the time budget (\textcircled{\scriptsize 2}).
+The dispatcher then presents prefill candidates in deadline order (\textcircled{\scriptsize 3}).
+Using the fitted model, the allocator accepts a full chunk when both constraints in Eq.~\ref{eq:model-guided-prefill-budget} hold, or truncates it to the largest feasible size (\textcircled{\scriptsize 4}).
+Running and newly admitted prefills share the budget, so the allocator updates the cumulative token count and attention work after each allocation.
+The selected prefill tokens then join the active decode tokens to form the mixed batch (\textcircled{\scriptsize 5}).
 
-Running prefill chunks and newly admitted prefills share the same budget.
-As candidates are allocated, the allocator updates both the cumulative prefill token count and attention work.
-If the full chunk does not fit, it truncates the chunk to the largest feasible size; if no positive allocation remains, further prefill work waits for a subsequent step.
-The dashed segments in Fig.~\ref{fig:token-allocator-workflow} represent this deferred work.
-Decode tokens remain scheduled subject to the engine's resource limits.
-
-In the example in Fig.~\ref{fig:token-allocator-workflow}, $r_2$ and $r_3$ remain active decode requests, while $r_4$ and $r_5$ are considered for prefill in that order.
-The allocator selects a feasible chunk from $r_4$'s prompt, leaving the remaining prefill work for later iterations.
-Thus, earlier admission does not require an entire prompt to fit in one step.
-After execution, updated token timestamps and context lengths determine the next allocation.
+In the illustrated example, $r_2$ and $r_3$ determine the decode workload, while $r_4$ and $r_5$ supply prefill work in that order.
+If the remaining budget accommodates only part of $r_4$'s prompt, that chunk runs alongside $r_2$ and $r_3$; the rest of the prefill work, shown by dashed segments, waits for later steps.
+After execution, updated token timestamps and context lengths determine the next step's budget and prediction.

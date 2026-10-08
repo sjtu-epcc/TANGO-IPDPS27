@@ -42,3 +42,8 @@ The allocator then determines how much of the admitted request's prompt can shar
 When the decode requests have little remaining deadline slack, it limits the prefill chunk size and leaves the remaining prompt tokens for subsequent steps, even if the engine's maximum token capacity has not been exhausted.
 Thus, request urgency determines the service order, while predicted step time determines how much work can execute in that order.
 \end{comment}
+
+\textbf{Implementation:}
+\tango{} is implemented on top of vLLM 0.17.0 by extending its request admission path and scheduler.
+The dispatcher and allocator run in the CPU-side scheduling loop and produce per-request token allocations for each engine step.
+The resulting batch is passed to vLLM through its existing scheduler--executor interface, reusing continuous batching, chunked prefill, PagedAttention-based KV-cache management, tensor parallelism, sampling, and streaming output.
