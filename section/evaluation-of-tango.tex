@@ -112,7 +112,6 @@ These results show that deadline-aware request ordering and execution-time-aware
 \subsection{Accuracy of the Step-Time Model}
 \label{subsec:accuracy-step-time-model}
 
-% TODO: 确认系数拟合与准确性验证的数据划分；当前资料未说明二者是否独立，因此此处不宣称 held-out 验证。
 In this subsection, we evaluate the prediction accuracy of the step-time model in Eq.~\ref{eq:step-time-model}.
 For each deployment configuration, we compare the predicted duration $\widehat{L}$ with the measured duration $L$ using its fitted coefficients.
 The evaluated steps cover decode-only and mixed execution across the three workloads at low and high loads.
@@ -122,13 +121,14 @@ We measure prediction error as the absolute percentage error $100\lvert\widehat{
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.9\columnwidth]{figures/evaluation/model_accuracy_combined_2x2.pdf}
-  \caption{Step-time prediction accuracy for the three models. Diagonal dashed lines denote perfect predictions; color indicates step counts per hexagon (log scale). The bottom-right panel shows absolute percentage error CDFs.}
+  \caption{Step-time prediction accuracy for the three models. Diagonal dashed lines denote perfect predictions; color indicates local step counts (log scale). The bottom-right panel shows absolute percentage error CDFs.}
   \label{fig:model-accuracy-combined}
   \vspace{-3mm}
 \end{figure}
 
 Fig.~\ref{fig:model-accuracy-combined} shows predicted versus measured step times and absolute percentage error CDFs (bottom right).
-As observed, predictions closely match measurements across all three models, with errors concentrated at small values.
+In the first three panels, color indicates the number of steps near each plotted location on a logarithmic scale, with purple indicating fewer steps and yellow indicating more.
+As observed, predictions closely match measurements across all three models.
 The mean absolute percentage errors (MAPEs) are 1.83\%, 1.62\%, and 1.70\% for the 8B, 14B, and 32B models, respectively.
 The fractions of steps with errors below 5\% are 90.59\%, 93.70\%, and 91.38\%, respectively.
 At 10\%, the corresponding fractions reach 98.68\%, 99.05\%, and 98.36\%.
