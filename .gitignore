@@ -32,6 +32,7 @@
 *.ist
 
 # Generated output directories
+/tmp/
 /output/
 /build/
 /.codex-slide-build/
