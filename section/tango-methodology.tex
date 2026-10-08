@@ -18,7 +18,7 @@ At each iteration boundary, they jointly take each request's TTFT/TPOT SLOs, inf
 The challenge for the request dispatcher at the temporal levelis to compare request urgency across inference phases.
 A request with an unfinished prefill should produce its first token within its TTFT budget, whereas a decoding request should sustain token-generation progress within its TPOT budget.
 The dispatcher maps these phase-specific requirements to comparable deadlines and updates request priorities as inference progresses.
-These priorities guide the admission of waiting requests and the preemption of less urgent ongoing requests under resource contention s(Section~\ref{sec:deadline-aware-request-dispatcher}).
+These priorities guide the admission of waiting requests and the preemption of less urgent ongoing requests under resource contention (Section~\ref{sec:deadline-aware-request-dispatcher}).
 
 The challenge for the token allocator at the spatial level is to advance urgent prefills while limiting their interference with decoding requests.
 As shown in Section~\ref{token-allocate-problem}, the total token count alone cannot reliably determine mixed-step execution time.

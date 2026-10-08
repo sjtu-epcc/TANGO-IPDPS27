@@ -159,7 +159,7 @@ We use the math workload as a representative case and replay it at its stress lo
 
 Table~\ref{tab:fcfs-multi-slo-attainment} shows the SLO attainment rates for the math workload.
 The overall rates are weighted by the number of requests in each SLO class.
-Under FCFS, the overall TTFT and TPOT attainment rates are 76.57\% and 75.44\%, respectively, but only 53.72\% of them satisfy both SLO objectives.
+Under FCFS, the overall TTFT and TPOT attainment rates are 76.57\% and 75.44\%, respectively, but only 53.72\% satisfy both SLOs.
 The gap between individual and joint attainment shows that satisfying either latency SLO alone does not provide effective Multi-SLO service.
 
 The class-level results further reveal distinct failure modes.
@@ -167,11 +167,16 @@ TTFT-prioritized requests achieve 48.89\% TTFT attainment and 100.00\% TPOT atta
 Balanced and relaxed requests attain both objectives for 53.98\% and 100.00\% of their requests, respectively.
 The contrasting class-level results indicate that the low joint attainment cannot be attributed to a single global latency bottleneck.
 
-The above results reveal a mismatch between throughput-oriented scheduling and request-specific latency SLOs.
-FCFS does not account for the remaining TTFT or TPOT slack when admitting prefill chunks or advancing decode requests.
-A scheduling decision that preserves prefill prompt responsiveness may disrupt decode token delivery, and vice versa.
+The above results reveal a mismatch between throughput-oriented scheduling and request-specific SLOs.
+FCFS ignores remaining TTFT and TPOT slack, so improving prefill responsiveness may delay decode tokens, and vice versa.
 The serving engine can thus retain sufficient capacity to satisfy 100.00\% of the relaxed requests, yet fail to direct that capacity toward the phase-specific objectives of other requests.
 These observations motivate a closer examination of how request ordering in the temporal aspect and per-step token allocation in the spatial aspect jointly affect Multi-SLO attainment.
+
+% The above results reveal a mismatch between throughput-oriented scheduling and request-specific latency SLOs.
+% FCFS does not account for the remaining TTFT or TPOT slack when admitting prefill chunks or advancing decode requests.
+% A scheduling decision that preserves prefill prompt responsiveness may disrupt decode token delivery, and vice versa.
+% The serving engine can thus retain sufficient capacity to satisfy 100.00\% of the relaxed requests, yet fail to direct that capacity toward the phase-specific objectives of other requests.
+% These observations motivate a closer examination of how request ordering in the temporal aspect and per-step token allocation in the spatial aspect jointly affect Multi-SLO attainment.
 
 \subsection{Diving into Underlying Reasons}
 \label{subsec:motivation-underlying-reasons}

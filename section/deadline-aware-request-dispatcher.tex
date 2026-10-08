@@ -2,7 +2,7 @@
 \section{\dispatcher{}}
 \label{sec:deadline-aware-request-dispatcher}
 
-Figs.~\ref{fig:phase-aware-deadlines} and~\ref{fig:deadline-admission-preemption} illustrate the dispatcher, which uses phase-aware deadlines as a common priority signal for request admission and preemption.
+Fig.~\ref{fig:phase-aware-deadlines} and Fig.~\ref{fig:deadline-admission-preemption} illustrate the dispatcher, which uses phase-aware deadlines as a common priority signal for request admission and preemption.
 In this section, we first introduce phase-aware deadline construction (Fig.~\ref{fig:phase-aware-deadlines}), then explain how these deadlines guide waiting-queue ordering and preemption under KV-cache memory pressure (Fig.~\ref{fig:deadline-admission-preemption}).
 
 \begin{figure}[t]
@@ -10,6 +10,7 @@ In this section, we first introduce phase-aware deadline construction (Fig.~\ref
   \includegraphics[width=\columnwidth]{figures/tango-methodology/phase-aware-deadlines.pdf}
   \caption{Phase-aware deadlines for request prioritization (times in ms).}
   \label{fig:phase-aware-deadlines}
+  \vspace{-3mm}
 \end{figure}
 
 \subsection{Phase-Aware Request Ordering}
@@ -56,6 +57,7 @@ This ordering allows requests with later deadlines to absorb more queueing delay
   \includegraphics[width=\columnwidth]{figures/tango-methodology/deadline-admission-preemption.pdf}
   \caption{Deadline-aware admission and preemption (times in ms).}
   \label{fig:deadline-admission-preemption}
+  \vspace{-3mm}
 \end{figure}
 
 During continuous batching, a new or resumed request may fail to obtain the KV-cache blocks required for admission.

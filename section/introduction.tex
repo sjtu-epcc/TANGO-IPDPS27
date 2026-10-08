@@ -9,18 +9,18 @@ For example, interactive chat prioritizes a fast first token generation, while r
 % Some requests are sensitive to the latency before the first output token, as in interactive chat, whereas others are sensitive to the latency between consecutive output tokens, as in real-time translation.
 These latency requirements correspond to two phases of LLM inference. During \emph{prefill}, the model processes the prompt and generates the first output token, measured by the time to first token (TTFT).
 During autoregressive \emph{decode}, it generates subsequent tokens one at a time, measured by the time per output token (TPOT).
-These two phases can execute on separate GPU pools (disaggregation) or share the same GPUs (colocation).
+These two phases can execute on disaggregated GPU pools or colocate on the same GPUs.
 % Online serving systems should therefore improve the goodput while meeting the application-specific TTFT and TPOT Service-Level Objectives (SLOs).
 
 
 Facing such a scenario, LLM serving should \textit{improve the goodput while meeting the TTFT and TPOT Service-Level Objectives (SLOs)} for requests with heterogeneous latency requirements.
-Disaggregation partitions GPU resources by phase, limiting fine-grained resource sharing between phases.
-Under heterogeneous SLOs, urgent work in one phase may remain queued despite spare capacity in the other, since using that capacity requires reallocating resources between the two pools.
-In contrast, representative SLO-aware systems such as SOLA and JITServe adopt colocation to flexibly share resources and improve goodput.
-Under colocation, current serving systems combine continuous batching, which dynamically admits new requests into the active batch between iterations, with chunked prefill, which divides long prompts into smaller segments that can be processed alongside decoding requests.
-Both techniques 
-% improve GPU utilization and serving efficiency and is
-are adopted by state-of-the-art LLM serving engines such as vLLM and SGLang.
+Disaggregation deployment partitions GPU resources by phase, which can leave one pool underutilized while urgent requests queue in the other, as the phase-specific demand of tight-SLO requests changes over time.
+Thus, representative Multi-SLO systems like SOLA and JITServe typically adopt colocation, allowing prefill and decode requests to share GPU resources flexibly and improving goodput.
+Under the colocation, these systems combine continuous batching, which dynamically admits new requests into the active batch between iterations, with chunked prefill, which divides long prompts into smaller segments that can be processed alongside decoding requests.
+Both techniques are adopted by state-of-the-art LLM serving engines such as vLLM and SGLang.
+% Disaggregation partitions GPU resources by phase, limiting fine-grained resource sharing between phases.
+% Under heterogeneous SLOs, urgent work in one phase may remain queued despite spare capacity in the other, since using that capacity requires reallocating resources between the two pools.
+% In contrast, representative SLO-aware systems such as SOLA and JITServe adopt colocation to flexibly share resources and improve goodput.
 
 
 % As shown in Fig.~\ref{fig:serving-workflow}, 
@@ -69,7 +69,7 @@ existing works allocate tokens under a fixed per-step budget without considering
 However, we observe that the step time depends on both the total token count in a token batch and the prefill/decode composition.
 With 2,048 decode tokens fixed under Qwen3-14B model and RTX 6000 Ada GPU, adding 2,048 prefill tokens increases mean step time from 328.7\,ms to 758.6\,ms.
 Even with the total token count fixed at 4,096, pure-prefill, pure-decode, and evenly mixed batches take 610.5\,ms, 682.5\,ms, and 758.6\,ms, respectively.
-A fixed token budget alone therefore cannot reliably control step time to meet the TPOT requirements of active decode requests.
+A fixed token budget alone therefore cannot reliably control step time to meet the TPOT demands of active decode requests.
 
 To address these two inefficiencies, an appropriate solution is to coordinate request-level urgency at the temporal perspective, with batch-level execution time at the spatial perspective.
 % Addressing these inefficiencies requires coordinating request-level urgency with batch-level execution time.
@@ -88,8 +88,7 @@ We therefore propose \tango{}, a multi-SLO LLM serving system that jointly contr
 \tango{} aims to improve the goodput while satisfying heterogeneous TTFT and TPOT SLO requirements of requests.
 It comprises a \dispatcher{} and a \allocator{}.
 The \dispatcher{} assigns phase-aware latency deadlines according to each request's active SLO and uses them to guide admission and preemption, prioritizing requests with tighter latency budgets.
-The \allocator{} uses a step-time model to estimate the execution time of mixed prefill/decode batches, and accordingly adjusts their prefill token budgets according to the remaining latency slack of decoding requests.
-
+The \allocator{} uses a step-time model to estimate the execution time of mixed prefill/decode batches, and adjusts their prefill token budgets according to the remaining latency slack of decoding requests.
 
 This paper makes three major contributions:
 \begin{itemize}
