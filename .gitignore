@@ -1,4 +1,5 @@
 # LaTeX compilation artifacts
+/tango.pdf
 *.aux
 *.bbl
 *.blg
