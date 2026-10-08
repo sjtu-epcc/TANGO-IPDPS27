@@ -37,7 +37,7 @@ Unlike static batching, continuous batching updates the active batch at iteratio
 After each iteration, completed requests leave, unfinished decode requests remain active, and waiting requests can be admitted into the released capacity.
 The batch composition can thus evolve throughout generation, improving GPU utilization while allowing the scheduler to reconsider which requests should run at every step.
 
-A prefill request may contain hundreds or thousands of prompt tokens, and scheduling an entire prompt at once can therefore produce a long iteration, thus delay token generation for the decode requests in the same batch.
+A prefill request may contain hundreds or thousands of prompt tokens, and scheduling an entire prompt at once can therefore produce a long iteration, thus delaying token generation for the decode requests in the same batch.
 Chunked prefill divides the prompt into smaller chunks that may be processed over multiple iterations.
 This enables prefill chunks and decode tokens to be colocated in one batch, while exposing the prefill chunk size as a controllable scheduling variable.
 Specifically, let $\mathcal{P}_k$ and $\mathcal{D}_k$ denote the prefill and decode requests selected in step $k$, and $c_{i,k}$ the prompt tokens allocated to request $r_i$.

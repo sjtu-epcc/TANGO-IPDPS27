@@ -70,9 +70,7 @@ At scheduling time $\tau_k$, these fractions are
   \label{eq:normalized-slo-slack}
 \end{equation}
 The allocator compares the minimum TTFT fraction among requests awaiting their first token in the running set and waiting queue with the minimum TPOT fraction among active decode requests.
-If TTFT is more urgent, it moves the active percentile $\rho_k$ from $\rho_0$ toward $1$, allowing a later decode deadline to release additional prefill capacity.
-Otherwise, it retains $\rho_k=\rho_0$.
-This adaptation gives urgent prefills more service by relaxing the step-time target imposed by earlier decode deadlines.
+At each step, the allocator linearly maps a smaller clipped TTFT/TPOT ratio of these minima to a higher deadline percentile, defaulting to the earliest deadline when the TPOT minimum is nonpositive.
 
 Let $\operatorname{Quantile}_{\rho_k}$ select a deadline at percentile $\rho_k$ from the ordered decode deadlines.
 Denote the selected deadline by $D_k^{\mathrm{bind}}$, shown as $D_{\mathrm{bind}}$ in Fig.~\ref{fig:token-allocator-workflow}.
