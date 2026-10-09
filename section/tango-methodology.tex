@@ -15,7 +15,7 @@ At each iteration boundary, they jointly take each request's TTFT/TPOT SLOs, inf
   \vspace{-3mm}
 \end{figure}
 
-The challenge for the request dispatcher at the temporal levelis to compare request urgency across inference phases.
+The challenge for the request dispatcher at the temporal level is to compare request urgency across inference phases.
 A request with an unfinished prefill should produce its first token within its TTFT budget, whereas a decoding request should sustain token-generation progress within its TPOT budget.
 The dispatcher maps these phase-specific requirements to comparable deadlines and updates request priorities as inference progresses.
 These priorities guide the admission of waiting requests and the preemption of less urgent ongoing requests under resource contention (Section~\ref{sec:deadline-aware-request-dispatcher}).
@@ -46,4 +46,4 @@ Thus, request urgency determines the service order, while predicted step time de
 \textbf{Implementation:}
 \tango{} is implemented on top of vLLM 0.17.0 by extending its request admission path and scheduler.
 The dispatcher and allocator run in the CPU-side scheduling loop and produce per-request token allocations for each engine step.
-The resulting batch is passed to vLLM through its existing scheduler--executor interface, reusing continuous batching, chunked prefill, PagedAttention-based KV-cache management, tensor parallelism, sampling, and streaming output.
+The resulting batch is passed to vLLM through its existing scheduler--executor interface, reusing continuous batching, chunked prefill, PagedAttention-based KV-cache management, tensor parallelism~\cite{narayanan2021megatron,aminabadi2022deepspeed}, sampling, and streaming output.

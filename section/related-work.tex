@@ -3,22 +3,22 @@
 \label{sec:related-work}
 
 \textbf{SLO-Agnostic LLM Serving.}
-Existing LLM serving systems improved throughput and latency through efficient batching and memory management.
-Orca introduced iteration-level scheduling, which allowed requests to enter and leave a batch between decoding iterations.
-vLLM introduced PagedAttention to reduce KV-cache fragmentation and support flexible memory sharing.
-SGLang exploited prefix reuse through RadixAttention and optimized the execution of structured language model programs.
+Existing LLM serving systems improved throughput and latency through efficient batching and memory management~\cite{sheng2024slora,shi2026elora,prabhu2025vattention}.
+Orca~\cite{yu2022orca} introduced iteration-level scheduling, which allowed requests to enter and leave a batch between decoding iterations.
+vLLM~\cite{kwon2023vllm} introduced PagedAttention to reduce KV-cache fragmentation and support flexible memory sharing.
+SGLang~\cite{zheng2024sglang} exploited prefix reuse through RadixAttention and optimized the execution of structured language model programs.
 However, these works optimized batching and memory efficiency without explicitly accounting for each request's TTFT and TPOT objectives in scheduling.
 
 \textbf{Temporal Request Scheduling.}
-SLO-aware temporal schedulers used latency requirements to decide which requests received service.
-SOLA adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for both TTFT and TPOT.
+SLO-aware temporal schedulers used latency requirements to decide which requests received service~\cite{sun2024llumnix,goel2026qoserve}.
+SOLA~\cite{hong2025sola} adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for both TTFT and TPOT.
 However, its shared TTFT and average-TPOT targets could not directly express heterogeneous request SLOs, and its token budgeting did not explicitly enforce individual next-token deadlines.
-For requests with heterogeneous SLOs, JITServe used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide serving bandwidth allocation.
-\textcolor{red}{However, overestimating output lengths could reserve excess capacity, while underestimating them could leave insufficient bandwidth to meet request SLOs.}
+For requests with heterogeneous SLOs, JITServe~\cite{zhang2026jitserve} used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide serving bandwidth allocation.
+\textcolor{blue}{However, its bandwidth allocation relied heavily on a black-box output-length predictor, making scheduling sensitive to prediction errors. }
 
 
 \textbf{Spatial Prefill--Decode Scheduling.}
-Existing approaches mitigated prefill--decode interference through resource separation or control of batch workloads.
-DistServe placed prefill and decode on separate GPUs to eliminate interference and independently optimized their resource allocation and parallelism to meet TTFT and TPOT requirements.
-Sarathi-Serve instead split long prompts into smaller prefill chunks and batched them with ongoing decode requests under a fixed token budget to reduce interference.
+Existing approaches mitigated prefill--decode interference through resource separation or control of batch workloads~\cite{patel2024splitwise,qin2025mooncake}.
+DistServe~\cite{zhong2024distserve} placed prefill and decode on separate GPUs to eliminate interference and independently optimized their resource allocation and parallelism to meet TTFT and TPOT requirements.
+Sarathi-Serve~\cite{agrawal2024sarathi} instead split long prompts into smaller prefill chunks and batched them with ongoing decode requests under a fixed token budget to reduce interference.
 However, these approaches relied on phase-level resource partitioning or fixed token budgets, limiting their ability to accommodate heterogeneous TTFT and TPOT requirements.

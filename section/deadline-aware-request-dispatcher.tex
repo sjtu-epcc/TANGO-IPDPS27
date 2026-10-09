@@ -57,7 +57,7 @@ This order gives earlier service to requests whose next output is due sooner, su
   \vspace{-3mm}
 \end{figure}
 
-Waiting-queue ordering alone is insufficient when running requests occupy the available KV-cache memory.
+Waiting-queue ordering alone is insufficient when running requests occupy the available KV-cache memory~\cite{gong2025pastfuture}.
 In Fig.~\ref{fig:deadline-admission-preemption}, $r_4$ is first in the waiting queue but cannot be admitted while requests with later deadlines retain their KV-cache blocks.
 We therefore extend deadline priority to memory reclamation.
 When KV allocation for a waiting request $r_j$ fails, the dispatcher selects the running request with the latest deadline as the candidate victim $r_v$, choosing the later-arriving request when deadlines are equal.

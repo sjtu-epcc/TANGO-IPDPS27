@@ -3,7 +3,7 @@
 \label{sec:evaluation-of-tango}
 
 In this section, we first evaluate the SLO attainment and goodput of \tango{} across different models and multi-SLO workloads.
-We then investigate the effectiveness of its two scheduling components, validate the step-time model, examine sensitivity to sending rates and SLO settings, evaluate scalability with larger models and GPU deployments.
+We then investigate the effectiveness of its two scheduling components, validate the step-time model, examine sensitivity to sending rates and SLO settings, and evaluate scalability with larger models and GPU deployments.
 %  and analyze scheduling overhead.
 
 \subsection{Evaluation Setup}
@@ -11,24 +11,24 @@ We then investigate the effectiveness of its two scheduling components, validate
 
 Table~\ref{tab:motivation-setup} shows our experimental platform.
 The chatbot, mathematical-reasoning, and software-agent workloads are described in Section~\ref{subsec:motivation-trace}.
-We test the Llama-3.1-8B, Qwen3-14B, and Qwen3-32B (8B, 14B, and 32B for short).
+We test the Llama-3.1-8B~\cite{grattafiori2024llama3}, Qwen3-14B, and Qwen3-32B~\cite{yang2025qwen3} (8B, 14B, and 32B for short).
 Based on the parameter size, we use 1, 2, and 4 NVIDIA RTX 6000 Ada GPUs to deploy them, respectively.
 Each GPU has 48\,GB of GPU memory.
 % Moreover, we use four SLO classes (TTFT-prioritized, TPOT-prioritized, balanced, and relaxed) for each model.
 For each trace, we randomly partition its requests into four equal-sized groups and assign each group to one of the four SLO classes (TTFT-prioritized, TPOT-prioritized, balanced, and relaxed) defined in Section~\ref{subsec:motivation-trace}.
 
-We use the popular serving systems vLLM, SOLA, and JITServe as baselines.
+We use the popular serving systems vLLM~\cite{kwon2023vllm}, SOLA~\cite{hong2025sola}, and JITServe~\cite{zhang2026jitserve} as baselines.
 We evaluate two vLLM variants: vLLM-Colocated executes prefill and decode on the same GPUs, allowing prefill chunks and decode tokens to share a batch, whereas vLLM-Disaggregated executes the two phases on separate GPU pools.
 % The disaggregated variant is evaluated for the 14B and 32B models; it cannot run in the single-GPU configuration used for the 8B model.
 vLLM-Colocated employs FCFS admission and a fixed maximum per-step token budget.
 %  without differentiating request-specific TTFT and TPOT objectives.
 SOLA adjusts both request execution order and iteration workload according to request and system states to improve SLO attainment.
 JITServe estimates uncertain request characteristics and allocates serving bandwidth to individual requests, while grouping compatible requests to improve batching efficiency.
-Since SOLA's source code is not publicly available, we reimplement SOLA's scheduling mechanisms on top of vLLM 0.17.0.
+Since SOLA's source code is not publicly available, we reimplement SOLA's scheduling mechanisms on top of vLLM 0.17.0~\cite{vllm2026optimization}.
 %and JITServe uses a different vLLM version
 % This allows all systems to be compared on the same vLLM runtime.
 
-Following prior works, we use overall SLO attainment and goodput as performance metrics.
+Following prior works~\cite{hong2025sola,zhong2024distserve}, we use overall SLO attainment and goodput as performance metrics.
 Overall SLO attainment is the percentage of all requests that satisfy both their TTFT and TPOT SLOs.
 Goodput measures the number of such requests completed per second.
 
@@ -115,8 +115,8 @@ These results show that deadline-aware request ordering and execution-time-aware
 In this subsection, we evaluate the prediction accuracy of the step-time model in Eq.~\ref{eq:step-time-model}.
 For each deployment configuration, we compare the predicted duration $\widehat{L}$ with the measured duration $L$ using its fitted coefficients.
 The evaluated steps cover decode-only and mixed execution.
-We evaluate \textcolor{blue}{16,150}, \textcolor{blue}{15,542}, and \textcolor{blue}{13,168} steps for the 8B, 14B, and 32B models, respectively.
-\textcolor{blue}{For each model, these steps are aggregated from a single measured run of \tango{} on each of the three workloads in the main experiment in Section~\ref{subsec:slo-attainment-and-goodput}.}
+We evaluate 16,150, 15,542, and 13,168 steps for the 8B, 14B, and 32B models, respectively.
+For each model, these steps are aggregated from a single measured run of \tango{} on each of the three workloads in the main experiment in Section~\ref{subsec:slo-attainment-and-goodput}.
 We measure prediction error as the absolute percentage error $100\lvert\widehat{L}-L\rvert/L$.
 
 \begin{figure}[t]
@@ -130,9 +130,9 @@ We measure prediction error as the absolute percentage error $100\lvert\widehat{
 Fig.~\ref{fig:model-accuracy-combined} shows predicted versus measured step times and absolute percentage error CDFs (bottom right).
 In the first three panels, color indicates the number of steps near each plotted location on a logarithmic scale, with purple indicating fewer steps and yellow indicating more.
 As observed, predictions closely match measurements across all three models.
-The mean absolute percentage errors (MAPEs) are \textcolor{blue}{1.84\%}, \textcolor{blue}{1.58\%}, and \textcolor{blue}{1.60\%} for the 8B, 14B, and 32B models, respectively.
-The fractions of steps with errors below 5\% are \textcolor{blue}{90.65\%}, \textcolor{blue}{93.85\%}, and \textcolor{blue}{92.12\%}, respectively.
-At 10\%, the corresponding fractions reach \textcolor{blue}{98.70\%}, \textcolor{blue}{99.13\%}, and \textcolor{blue}{98.57\%}.
+The mean absolute percentage errors (MAPEs) are 1.84\%, 1.58\%, and 1.60\% for the 8B, 14B, and 32B models, respectively.
+The fractions of steps with errors below 5\% are 90.65\%, 93.85\%, and 92.12\%, respectively.
+At 10\%, the corresponding fractions reach 98.70\%, 99.13\%, and 98.57\%.
 
 \subsection{Sensitivity to the Sending Rate}
 \label{subsec:sensitivity-sending-rate}
@@ -140,7 +140,7 @@ At 10\%, the corresponding fractions reach \textcolor{blue}{98.70\%}, \textcolor
 In this subsection, we investigate the performance of \tango{} under different sending rates.
 The overall comparison in Section~\ref{subsec:slo-attainment-and-goodput} uses $1.2\lambda_{90}$ to evaluate serving performance under pressure.
 Here, we vary the load multiplier $\alpha$ from 1.0 to 1.4 in increments of 0.05 and replay the trace at $\alpha\lambda_{90}$.
-We use Qwen3-14B with the chatbot workload for this experiment, and other scenairos show similar results.
+We use Qwen3-14B with the chatbot workload for this experiment, and other scenarios show similar results.
 All systems use the same request sequence, arrival schedule, and SLO targets at each sending rate.
 
 \begin{figure}[t]
@@ -155,8 +155,8 @@ All systems use the same request sequence, arrival schedule, and SLO targets at 
 Fig.~\ref{fig:multi-qps-goodput-slo} shows the goodput and overall SLO attainment of \tango{} and the baselines.
 At $\lambda_{90}$, without additional stress, all four systems achieve high SLO attainment and similar goodput, with \tango{} still leading in both metrics.
 As the sending rate increases, both metrics generally decline, but \tango{} maintains higher SLO attainment and goodput, showing a more pronounced advantage under pressure.
-\textcolor{blue}{At $1.35\lambda_{90}$, \tango{} achieves its largest relative improvement in overall SLO attainment over vLLM, reaching 59.48\%; the improvements over SOLA and JITServe peak at 46.91\% and 32.65\% at $1.25\lambda_{90}$ and $1.30\lambda_{90}$, respectively.
-For goodput, the largest relative improvement over vLLM is 49.64\% at $1.40\lambda_{90}$, while those over SOLA and JITServe reach 40.93\% and 20.67\%, respectively, both at $1.30\lambda_{90}$.}
+At $1.35\lambda_{90}$, \tango{} achieves its largest relative improvement in overall SLO attainment over vLLM, reaching 59.48\%; the improvements over SOLA and JITServe peak at 46.91\% and 32.65\% at $1.25\lambda_{90}$ and $1.30\lambda_{90}$, respectively.
+For goodput, the largest relative improvement over vLLM is 49.64\% at $1.40\lambda_{90}$, while those over SOLA and JITServe reach 40.93\% and 20.67\%, respectively, both at $1.30\lambda_{90}$.
 
 These results are consistent with \tango{}'s coordinated control of request ordering and step duration.
 As the sending rate increases, more requests compete for execution, making queueing delay and prefill/decode interference harder to control.
@@ -169,8 +169,8 @@ This coordination helps \tango{} preserve higher SLO attainment and goodput unde
 
 In this subsection, we evaluate \tango{} under different SLO settings.
 For Qwen3-14B on the chatbot workload, we scale both TTFT and TPOT targets by $\eta\in\{0.8,0.9,1.1,1.2\}$.
-\textcolor{blue}{We also construct a mixed workload by combining requests from the chatbot, mathematical-reasoning, and software-agent traces described in Section~\ref{subsec:motivation-trace} into a single request stream.}
-\textcolor{blue}{Each trace type is assigned a distinct SLO class, and all requests of that type share the same TTFT/TPOT SLO configuration of the assigned class.}
+We also construct a mixed workload by combining requests from the chatbot, mathematical-reasoning, and software-agent traces described in Section~\ref{subsec:motivation-trace} into a single request stream.
+Each trace type is assigned a distinct SLO class, and all requests of that type share the same TTFT/TPOT SLO configuration of the assigned class.
 All systems use identical requests and arrivals within each setting.
 
 \begin{figure}[t]
@@ -184,18 +184,18 @@ All systems use identical requests and arrivals within each setting.
 Fig.~\ref{fig:multi-trace-goodput-slo} shows that \tango{} achieves the highest overall SLO attainment and goodput in all five settings.
 Across the four SLO scaling factors, the average relative improvements in SLO attainment are 38.23\%, 35.16\%, and 27.38\% compared with vLLM, SOLA, and JITServe, respectively.
 The corresponding average goodput ratios are $1.29\times$, $1.28\times$, and $1.16\times$.
-\textcolor{blue}{\tango{} maintains an advantage under relaxed SLOs, and this advantage generally grows as SLOs tighten, because its coordinated scheduling better limits queueing delay and prefill/decode interference within shrinking latency budgets.}
+\tango{} maintains an advantage under relaxed SLOs, and this advantage generally grows as SLOs tighten, because its coordinated scheduling better limits queueing delay and prefill/decode interference within shrinking latency budgets.
 
 For the mixed trace, \tango{} increases SLO attainment by 120.27\%, 165.04\%, and 32.25\% over vLLM, SOLA, and JITServe, respectively, with corresponding goodput ratios of $2.02\times$, $2.47\times$, and $1.19\times$.
-\textcolor{blue}{\tango{}'s advantage is more pronounced on the mixed trace, where differences in prompt lengths, generation lengths, and context sizes increase interference among requests with different SLO requirements.
-By coordinating deadline-aware request prioritization with step-time-guided token allocation, \tango{} limits this interference and helps more requests meet their latency targets.}
+\tango{}'s advantage is more pronounced on the mixed trace, where differences in prompt lengths, generation lengths, and context sizes increase interference among requests with different SLO requirements.
+By coordinating deadline-aware request prioritization with step-time-guided token allocation, \tango{} limits this interference and helps more requests meet their latency targets.
 These results show that deadline-aware request ordering and step-time-guided token allocation remain effective under both SLO scaling and mixed workloads.
 
 \subsection{Scalability with Larger Models and More GPUs}
 \label{subsec:scalability-larger-models}
 
 In this subsection, we investigate the scalability of \tango{} with larger models and increased GPU resources.
-We use Llama-3.1-70B and Qwen3-Next-80B-A3B-Instruct (70B and 80B-A3B for short), with the latter using a mixture-of-experts (MoE) architecture.
+We use Llama-3.1-70B~\cite{grattafiori2024llama3} and Qwen3-Next-80B-A3B-Instruct~\cite{qwen2025next} (70B and 80B-A3B for short), with the latter using a mixture-of-experts (MoE) architecture.
 Both models are deployed on eight NVIDIA A800 GPUs with a tensor-parallel degree of 8.
 We evaluate them on the chatbot, mathematical-reasoning, and software-agent workloads, using the same sending-rate and SLO settings as in Section~\ref{subsec:slo-attainment-and-goodput}.
 
@@ -210,20 +210,20 @@ We evaluate them on the chatbot, mathematical-reasoning, and software-agent work
 Fig.~\ref{fig:more-model-combined} shows the overall SLO attainment and goodput of \tango{} and the baselines.
 As observed, \tango{} achieves the highest values for both metrics in all six model--workload combinations.
 The average relative improvements in SLO attainment are 45.07\%, 33.92\%, and 41.49\% compared with vLLM, SOLA, and JITServe, respectively.
-The corresponding average goodput ratios are $1.40\times$, $1.35\times$, and $1.40\times$\textcolor{blue}{, which are broadly comparable to those in Section~\ref{subsec:slo-attainment-and-goodput},}
+The corresponding average goodput ratios are $1.40\times$, $1.35\times$, and $1.40\times$, which are broadly comparable to those in Section~\ref{subsec:slo-attainment-and-goodput},
 demonstrating that \tango{} remains effective when scaling to larger dense and MoE models, as well as deployments with more GPUs and greater aggregate GPU memory.
 
 \subsection{Overhead of TANGO}
 \label{subsec:overhead-of-tango}
 
 \textbf{Time Overhead:}
-\textcolor{blue}{The time overhead consists of CPU processing in two components: the dispatcher and the allocator.
+The time overhead consists of CPU processing in two components: the dispatcher and the allocator.
 The dispatcher maintains request deadlines, orders requests, and makes preemption decisions.
 The allocator selects the target decode deadline, predicts step duration using the closed-form model, and searches for the prefill token budget.
-For scheduling steps with thousands of candidate requests, their combined overhead is estimated to be less than 0.6\,ms per step, typically below 1\% of the step latency and thus negligible.}
+For scheduling steps with thousands of candidate requests, their combined overhead is estimated to be less than 0.6\,ms per step, typically below 1\% of the step latency and thus negligible.
 
 \textbf{Memory Overhead:}
-\textcolor{blue}{\tango{} stores additional scheduling state as CPU-side metadata, including request SLOs, timestamps, token counts, effective deadlines, and progress information.
+\tango{} stores additional scheduling state as CPU-side metadata, including request SLOs, timestamps, token counts, effective deadlines, and progress information.
 This metadata adds an estimated 96 bytes of CPU memory per request.
 The allocator's fitted step-time coefficients and configuration values are shared across requests and occupy less than 128 bytes in total.
-The 96-byte metadata typically accounts for less than 0.01\% of the megabyte-scale per-request KV cache, making the additional memory overhead negligible.}
+The 96-byte metadata typically accounts for less than 0.01\% of the megabyte-scale per-request KV cache, making the additional memory overhead negligible.

@@ -1,64 +1,484 @@
+@inproceedings{ruan2026libra,
+  author    = {Chaoyi Ruan and Yinhe Chen and Dongqi Tian and Yandong Shi and Yongji Wu and Jialin Li and Cheng Li},
+  title     = {Libra: Flexible Request Partitioning and Scheduling for Serving Unbalanced and Dynamic {LLM} Workloads},
+  booktitle = {23rd USENIX Symposium on Networked Systems Design and Implementation (NSDI 26)},
+  year      = {2026},
+  isbn      = {978-1-939133-54-0},
+  address   = {Renton, WA},
+  pages     = {1243--1258},
+  url       = {https://www.usenix.org/conference/nsdi26/presentation/ruan-libra},
+  publisher = {USENIX Association},
+  month     = may
+}
 @inproceedings{yu2022orca,
   author    = {Gyeong-In Yu and Joo Seong Jeong and Geon-Woo Kim and Soojeong Kim and Byung-Gon Chun},
   title     = {Orca: A Distributed Serving System for {Transformer-Based} Generative Models},
   booktitle = {16th USENIX Symposium on Operating Systems Design and Implementation (OSDI 22)},
+  year      = {2022},
+  isbn      = {978-1-939133-28-1},
+  address   = {Carlsbad, CA},
   pages     = {521--538},
-  year      = {2022}
+  url       = {https://www.usenix.org/conference/osdi22/presentation/yu},
+  publisher = {USENIX Association},
+  month     = jul
 }
 
+
 @inproceedings{kwon2023vllm,
-  author    = {Woosuk Kwon and Zhuohan Li and Siyuan Zhuang and Ying Sheng and Lianmin Zheng and Cody Hao Yu and Joseph E. Gonzalez and Hao Zhang and Ion Stoica},
-  title     = {Efficient Memory Management for Large Language Model Serving with {PagedAttention}},
-  booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)},
-  pages     = {611--626},
-  year      = {2023}
+  author    = {Kwon, Woosuk and Li, Zhuohan and Zhuang, Siyuan and Sheng, Ying and Zheng, Lianmin and Yu, Cody Hao and Gonzalez, Joseph and Zhang, Hao and Stoica, Ion},
+  title     = {Efficient Memory Management for Large Language Model Serving with PagedAttention},
+  year      = {2023},
+  isbn      = {9798400702297},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3600006.3613165},
+  doi       = {10.1145/3600006.3613165},
+  abstract  = {High throughput serving of large language models (LLMs) requires batching sufficiently many requests at a time. However, existing systems struggle because the key-value cache (KV cache) memory for each request is huge and grows and shrinks dynamically. When managed inefficiently, this memory can be significantly wasted by fragmentation and redundant duplication, limiting the batch size. To address this problem, we propose PagedAttention, an attention algorithm inspired by the classical virtual memory and paging techniques in operating systems. On top of it, we build vLLM, an LLM serving system that achieves (1) near-zero waste in KV cache memory and (2) flexible sharing of KV cache within and across requests to further reduce memory usage. Our evaluations show that vLLM improves the throughput of popular LLMs by 2--4{\texttimes} with the same level of latency compared to the state-of-the-art systems, such as FasterTransformer and Orca. The improvement is more pronounced with longer sequences, larger models, and more complex decoding algorithms. vLLM's source code is publicly available at https://github.com/vllm-project/vllm.},
+  booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles},
+  pages     = {611–626},
+  numpages  = {16},
+  location  = {Koblenz, Germany},
+  series    = {SOSP '23}
 }
 
 @inproceedings{zheng2024sglang,
-  author    = {Lianmin Zheng and Liangsheng Yin and Zhiqiang Xie and Chuyue Sun and Jeff Huang and Cody Hao Yu and Shiyi Cao and Christos Kozyrakis and Ion Stoica and Joseph E. Gonzalez and Clark Barrett and Ying Sheng},
-  title     = {{SGLang}: Efficient Execution of Structured Language Model Programs},
-  booktitle = {Advances in Neural Information Processing Systems},
-  volume    = {37},
-  year      = {2024}
+  author    = {Zheng, Lianmin and Yin, Liangsheng and Xie, Zhiqiang and Sun, Chuyue and Huang, Jeff and Yu, Cody Hao and Cao, Shiyi and Kozyrakis, Christos and Stoica, Ion and Gonzalez, Joseph E. and Barrett, Clark and Sheng, Ying},
+  title     = {SGLang: efficient execution of structured language model programs},
+  year      = {2024},
+  isbn      = {9798331314385},
+  publisher = {Curran Associates Inc.},
+  address   = {Red Hook, NY, USA},
+  abstract  = {Large language models (LLMs) are increasingly used for complex tasks that require multiple generation calls, advanced prompting techniques, control flow, and structured inputs/outputs. However, efficient systems are lacking for programming and executing these applications. We introduce SGLang, a system for efficient execution of complex language model programs. SGLang consists of a frontend language and a runtime. The frontend simplifies programming with primitives for generation and parallelism control. The runtime accelerates execution with novel optimizations like RadixAttention for KV cache reuse and compressed finite state machines for faster structured output decoding. Experiments show that SGLang achieves up to 6.4{\texttimes} higher throughput compared to state-of-the-art inference systems on various large language and multi-modal models on tasks including agent control, logical reasoning, few-shot learning benchmarks, JSON decoding, retrieval-augmented generation pipelines, and multi-turn chat. The code is publicly available at https://github.com/sgl-project/sglang.},
+  booktitle = {Proceedings of the 38th International Conference on Neural Information Processing Systems},
+  articleno = {2000},
+  numpages  = {27},
+  location  = {Vancouver, BC, Canada},
+  series    = {NIPS '24}
 }
 
+
 @inproceedings{agrawal2024sarathi,
-  author    = {Amey Agrawal and Nitin Kedia and Ashish Panwar and Jayashree Mohan and Nipun Kwatra and Bhargav Gulavani and Alexey Tumanov and Ramachandran Ramjee},
-  title     = {Taming {Throughput-Latency} Tradeoff in {LLM} Inference with {Sarathi-Serve}},
-  booktitle = {18th USENIX Symposium on Operating Systems Design and Implementation (OSDI 24)},
-  pages     = {117--134},
-  year      = {2024}
+  author    = {Agrawal, Amey and Kedia, Nitin and Panwar, Ashish and Mohan, Jayashree and Kwatra, Nipun and Gulavani, Bhargav S. and Tumanov, Alexey and Ramjee, Ramachandran},
+  title     = {Taming throughput-latency tradeoff in LLM inference with sarathi-serve},
+  year      = {2024},
+  isbn      = {978-1-939133-40-3},
+  publisher = {USENIX Association},
+  address   = {USA},
+  abstract  = {Each LLM serving request goes through two phases. The first is prefill which processes the entire input prompt and produces the first output token and the second is decode which generates the rest of output tokens, one-at-a-time. Prefill iterations have high latency but saturate GPU compute due to parallel processing of the input prompt. In contrast, decode iterations have low latency but also low compute utilization because a decode iteration processes only a single token per request. This makes batching highly effective for decodes and consequently for overall throughput. However, batching multiple requests leads to an interleaving of prefill and decode iterations which makes it challenging to achieve both high throughput and low latency.We introduce an efficient LLM inference scheduler, Sarathi-Serve, to address this throughput-latency tradeoff. Sarathi-Serve introduces chunked-prefills which splits a prefill request into near equal sized chunks and creates stall-free schedules that adds new requests in a batch without pausing ongoing decodes. Stall-free scheduling unlocks the opportunity to improve throughput with large batch sizes while minimizing the effect of batching on latency. Furthermore, uniform batches in Sarathi-Serve ameliorate the imbalance between iterations, resulting in minimal pipeline bubbles.Our techniques yield significant improvements in inference performance across models and hardware under tail latency constraints. For Mistral-7B on single A100 GPUs, we achieve 2.6{\texttimes} higher serving capacity and up to 3.7{\texttimes} higher serving capacity for the Yi-34B model on two A100 GPUs as compared to vLLM. When used with pipeline parallelism on Falcon- 180B, Sarathi-Serve provides up to 5.6{\texttimes} gain in the end-to-end serving capacity. The source code for Sarathi-Serve is available at https://github.com/microsoft/sarathi-serve.},
+  booktitle = {Proceedings of the 18th USENIX Conference on Operating Systems Design and Implementation},
+  articleno = {7},
+  numpages  = {18},
+  location  = {Santa Clara, CA, USA},
+  series    = {OSDI'24}
 }
 
 @inproceedings{zhong2024distserve,
-  author    = {Yinmin Zhong and Shengyu Liu and Junda Chen and Jianbo Hu and Yibo Zhu and Xuanzhe Liu and Xin Jin and Hao Zhang},
-  title     = {{DistServe}: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving},
-  booktitle = {18th USENIX Symposium on Operating Systems Design and Implementation (OSDI 24)},
-  pages     = {193--210},
-  year      = {2024}
+  author    = {Zhong, Yinmin and Liu, Shengyu and Chen, Junda and Hu, Jianbo and Zhu, Yibo and Liu, Xuanzhe and Jin, Xin and Zhang, Hao},
+  title     = {DistServe: disaggregating prefill and decoding for goodput-optimized large language model serving},
+  year      = {2024},
+  isbn      = {978-1-939133-40-3},
+  publisher = {USENIX Association},
+  address   = {USA},
+  abstract  = {DistServe improves the performance of large language models (LLMs) serving by disaggregating the prefill and decoding computation. Existing LLM serving systems colocate the two phases and batch the computation of prefill and decoding across all users and requests. We find that this strategy not only leads to strong prefill-decoding interferences but also couples the resource allocation and parallelism plans for both phases. LLM applications often emphasize individual latency for each phase: time to first token (TTFT) for the prefill phase and time per output token (TPOT) of each request for the decoding phase. In the presence of stringent latency requirements, existing systems have to prioritize one latency over the other, or over-provision compute resources to meet both. DistServe assigns prefill and decoding computation to different GPUs, hence eliminating prefill-decoding interferences. Given the application's TTFT and TPOT requirements, Dist-Serve co-optimizes the resource allocation and parallelism strategy tailored for each phase. DistServe also places the two phases according to the serving cluster's bandwidth to minimize the communication caused by disaggregation. As a result, DistServe significantly improves LLM serving performance in terms of the maximum rate that can be served within both TTFT and TPOT constraints on each GPU. Our evaluations show that on various popular LLMs, applications, and latency requirements, DistServe can serve 7.4{\texttimes} more requests or 12.6{\texttimes} tighter SLO, compared to state-of-the-art systems, while staying within latency constraints for > 90\% of requests.},
+  booktitle = {Proceedings of the 18th USENIX Conference on Operating Systems Design and Implementation},
+  articleno = {11},
+  numpages  = {18},
+  location  = {Santa Clara, CA, USA},
+  series    = {OSDI'24}
 }
 
 @inproceedings{hong2025sola,
-  author    = {Ke Hong and Xiuhong Li and Lufang Chen and Qiuli Mao and Guohao Dai and Xuefei Ning and Shengen Yan and Yun Liang and Yu Wang},
-  title     = {{SOLA}: Optimizing {SLO} Attainment for Large Language Model Serving with State-Aware Scheduling},
+  author    = {Hong, Ke and Li, Xiuhong and Chen, Lufang and Mao, Qiuli and Dai, Guohao and Ning, Xuefei and Yan, Shengen and Liang, Yun and Wang, Yu},
   booktitle = {Proceedings of Machine Learning and Systems},
+  editor    = {M. Zaharia and G. Joshi and Y. Lin},
+  pages     = {},
+  publisher = {MLSys},
+  title     = {SOLA: Optimizing SLO Attainment for Large Language Model Serving with State-Aware Scheduling},
+  url       = {https://proceedings.mlsys.org/paper_files/paper/2025/file/bc82dbfbfa43232be85b8d9838f49c3e-Paper-Conference.pdf},
   volume    = {7},
   year      = {2025}
 }
 
-@misc{chen2025slosserve,
-  author        = {Siyuan Chen and Zhipeng Jia and Samira Khan and Arvind Krishnamurthy and Phillip B. Gibbons},
-  title         = {{SLOs-Serve}: Optimized Serving of {Multi-SLO} {LLMs}},
-  year          = {2025},
-  eprint        = {2504.08784},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.DC}
+
+
+@inproceedings{li2026adaserve,
+  author    = {Li, Zikun and Chen, Zhuofu and Delacourt, Remi and Oliaro, Gabriele and Wang, Zeyu and Chen, Qinghan and Lin, Shuhuai and Yang, April and Zhang, Zhihao and Chen, Zhuoming and Lai, Yi-Hsiang and Cheng, Xinhao and Miao, Xupeng and Jia, Zhihao},
+  title     = {AdaServe: Accelerating Multi-SLO LLM Serving with SLO-Customized Speculative Decoding},
+  year      = {2026},
+  isbn      = {9798400722127},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3767295.3769315},
+  doi       = {10.1145/3767295.3769315},
+  abstract  = {Modern large language model (LLM) applications exhibit diverse service-level objectives (SLOs), from low-latency requirements in interactive coding assistants to more relaxed constraints in data wrangling tasks. Existing LLM serving systems, which rely on uniform batching and scheduling strategies, often fail to meet these heterogeneous SLOs concurrently. We present AdaServe, the first LLM serving system designed to support efficient multi-SLO serving through SLO-customized speculative decoding. AdaServe formulates multi-SLO serving as a constrained optimization problem and introduces a hardware-aware algorithm that constructs a speculation tree tailored to each request's latency target. It features a speculate-select-verify pipeline that enables fine-grained control over decoding speed while maximizing system throughput. AdaServe further adapts to workload variation by dynamically adjusting speculation parameters. Evaluations across diverse workloads show that AdaServe reduces SLO violations by up to 4.3X and improves goodput by up to 1.9X compared to the best-performing baselines, highlighting its effectiveness in multi-SLO serving.},
+  booktitle = {Proceedings of the 21st European Conference on Computer Systems},
+  pages     = {36–54},
+  numpages  = {19},
+  keywords  = {large language model serving, speculative decoding, generative AI},
+  location  = {Edinburgh, Scotland UK},
+  series    = {EUROSYS '26}
 }
 
-@inproceedings{zhang2026jitserve,
-  author    = {Wei Zhang and Zhiyu Wu and Yi Mu and Rui Ning and Banruo Liu and Nikhil Sarda and Myungjin Lee and Fan Lai},
-  title     = {{JITServe}: {SLO-aware} {LLM} Serving with Imprecise Request Information},
+
+@inbook{zhang2026jitserve,
+  author    = {Zhang, Wei and Wu, Zhiyu and Mu, Yi and Ning, Rui and Liu, Banruo and Sarda, Nikhil and Lee, Myungjin and Lai, Fan},
+  title     = {JITServe: SLO-aware LLM serving with imprecise request information},
+  year      = {2026},
+  isbn      = {978-1-939133-54-0},
+  publisher = {USENIX Association},
+  address   = {USA},
+  abstract  = {The integration of Large Language Models (LLMs) into applications ranging from interactive chatbots to multi-agent systems has introduced a wide spectrum of service-level objectives (SLOs) for responsiveness. These include latency-sensitive requests emphasizing per-token latency in streaming chat, deadline-sensitive requests requiring rapid full responses to trigger external tools, and compound requests with evolving dependencies across multiple LLM calls. Despite--or perhaps, because of--this workload diversity and unpredictable request information (e.g., response lengths and dependencies), existing request schedulers have focused on aggregate performance, unable to ensure application-level SLO needs.This paper presents JITServe, the first SLO-aware LLM serving system designed to maximize service goodput (e.g., the number of tokens meeting request SLOs) across diverse workloads. JITServe novelly schedules requests using imprecise request information and gradually relaxes this conservatism by refining request information estimates as generation progresses. It applies a grouped margin goodput maximization algorithm to allocate just enough serving bandwidth to satisfy each request's SLO just-in-time (JIT), maximizing residual capacity for others, while deciding the composition of requests in a batch to maximize efficiency and goodput with provable guarantees. Our evaluation across diverse realistic workloads, including chat, deep research, and agentic pipelines, shows that JITServe improves service goodput by 1.4{\texttimes}-6.3{\texttimes}, alternatively achieving 28.5\%-83.2\% resource savings, compared to state-of-the-art designs.},
+  booktitle = {Proceedings of the 23rd USENIX Symposium on Networked Systems Design and Implementation},
+  articleno = {44},
+  numpages  = {24}
+}
+@inproceedings{shi2026elora,
+  author    = {Shi, Jiuchen and Zhang, Hang and Wang, Yixiao and Chen, Quan and Shan, Yizhou and Fu, Kaihua and Wang, Wei and Guo, Minyi},
+  booktitle = {2026 IEEE International Symposium on High Performance Computer Architecture (HPCA)},
+  title     = {ELORA: Efficient LoRA and KV Cache Management for Multi-LoRA LLM Serving},
+  year      = {2026},
+  volume    = {},
+  number    = {},
+  pages     = {1-14},
+  keywords  = {Costs;Large language models;Computational modeling;Graphics processing units;Computer architecture},
+  doi       = {10.1109/HPCA68181.2026.11408492}
+}
+@inproceedings{patel2024splitwise,
+  author    = {Patel, Pratyush and Choukse, Esha and Zhang, Chaojie and Shah, Aashaka and Goiri, {\'{I}}{\~n}igo and Maleki, Saeed and Bianchini, Ricardo},
+  booktitle = {2024 ACM/IEEE 51st Annual International Symposium on Computer Architecture (ISCA)},
+  title     = {Splitwise: Efficient Generative LLM Inference Using Phase Splitting},
+  year      = {2024},
+  volume    = {},
+  number    = {},
+  pages     = {118-132},
+  keywords  = {Costs;Processor scheduling;Large language models;Computational modeling;Graphics processing units;Computer architecture;Throughput;Large language models;Cluster deployments;Scheduling;GPUs;Inference efficiency;Machine learning;Resource management},
+  doi       = {10.1109/ISCA59077.2024.00019}
+}
+
+@inproceedings{goel2026qoserve,
+  author    = {Goel, Kanishk and Mohan, Jayashree and Kwatra, Nipun and Anupindi, Ravi Shreyas and Ramjee, Ramachandran},
+  title     = {QoServe: Breaking the Silos of LLM Inference Serving},
+  year      = {2026},
+  isbn      = {9798400723599},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3779212.3790206},
+  doi       = {10.1145/3779212.3790206},
+  abstract  = {The widespread adoption of Large Language Models (LLMs) has enabled diverse applications with very different latency requirements. Existing LLM serving frameworks rely on siloed infrastructure with coarse-grained workload segregation --- interactive and batch --- leading to inefficient resource utilization and limited support for fine-grained Quality-of-Service (QoS) differentiation. We present QOSERVE, a novel QoS-driven inference serving system that enables efficient co-scheduling of diverse workloads on shared infrastructure. QOSERVE introduces fine-grained QoS classification allowing applications to specify precise latency requirements, and dynamically adapts scheduling decisions based on real-time system state. Leveraging the predictable execution characteristics of LLM inference, QOSERVE implements dynamic chunking to improve overall throughput while maintaining strict QoS guarantees. Additionally, QOSERVE introduces hybrid prioritization to balance fairness and efficiency, and employs selective request relegation for graceful service degradation during overloads. Our evaluation demonstrates that QOSERVE increases serving capacity by 23\% compared to current siloed deployments, while maintaining QoS guarantees on an A100 cluster, and improves per-replica goodput by up to 2.4x compared to Sarathi on a shared cluster. Notably, under extreme load, our system reduces SLO violations by an order of magnitude compared to current strategies.},
+  booktitle = {Proceedings of the 31st ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2},
+  pages     = {1492–1507},
+  numpages  = {16},
+  keywords  = {large language models, quality of service, inference serving, scheduling, reliability},
+  location  = {Pittsburgh, PA, USA},
+  series    = {ASPLOS '26}
+}
+
+@inproceedings{wang2025burstgpt,
+  author    = {Wang, Yuxin and Chen, Yuhan and Li, Zeyu and Kang, Xueze and Fang, Yuchu and Zhou, Yeju and Zheng, Yang and Tang, Zhenheng and He, Xin and Guo, Rui and Wang, Xin and Wang, Qiang and Zhou, Amelie Chi and Chu, Xiaowen},
+  title     = {BurstGPT: A Real-World Workload Dataset to Optimize LLM Serving Systems},
+  year      = {2025},
+  isbn      = {9798400714542},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3711896.3737413},
+  doi       = {10.1145/3711896.3737413},
+  abstract  = {Despite efforts to improve the quality of service (QoS) and throughput in Large Language Model (LLM) serving systems, progress is often limited by the lack of publicly available real-world workloads. Consequently, evaluations usually depend on synthetic or oversimplified load patterns, and systems that appear promising in testing frequently underperform once deployed. This work presents BurstGPT, an LLM serving workload with 10.31 million traces from regional Azure OpenAI GPT services over 213 days. BurstGPT captures LLM serving characteristics from user, model and system perspectives: (1) User request concurrency: burstiness variations of requests in Azure OpenAI GPT services, revealing diversified concurrency patterns in different services and model types. (2) User conversation patterns: counts and intervals within conversations for service optimizations. (3) Model response lengths: auto-regressive serving processes of GPT models, showing statistical relations between requests and their responses. (4) System response failures: failures of conversation and API services, showing intensive resource needs and limited availability of LLM services in Azure. The details of the characteristics can serve multiple purposes in LLM serving optimizations, such as system evaluation and trace provisioning. In our demo evaluation with BurstGPT, frequent variations in BurstGPT reveal declines in efficiency, stability, or reliability in realistic LLM serving. We identify that the generalization of KV cache management, scheduling and disaggregation optimizations can be improved under realistic workload evaluations. BurstGPT is publicly available now at https://github.com/HPMLL/BurstGPT and is widely used to develop prototypes of LLM serving frameworks in the industry.},
+  booktitle = {Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2},
+  pages     = {5831–5841},
+  numpages  = {11},
+  keywords  = {llm serving, system scheduling, workload management, workload trace},
+  location  = {Toronto ON, Canada},
+  series    = {KDD '25}
+}
+
+@inproceedings{sun2024llumnix,
+  author    = {Sun, Biao and Huang, Ziming and Zhao, Hanyu and Xiao, Wencong and Zhang, Xinyi and Li, Yong and Lin, Wei},
+  title     = {Llumnix: dynamic scheduling for large language model serving},
+  year      = {2024},
+  isbn      = {978-1-939133-40-3},
+  publisher = {USENIX Association},
+  address   = {USA},
+  abstract  = {Inference serving for large language models (LLMs) is the key to unleashing their potential in people's daily lives. However, efficient LLM serving remains challenging today because the requests are inherently heterogeneous and unpredictable in terms of resource and latency requirements, as a result of the diverse applications and the dynamic execution nature of LLMs. Existing systems are fundamentally limited in handling these characteristics and cause problems such as severe queuing delays, poor tail latencies, and SLO violations. We introduce Llumnix, an LLM serving system that reacts to such heterogeneous and unpredictable requests by runtime rescheduling across multiple model instances. Similar to context switching across CPU cores in modern operating systems, Llumnix reschedules requests to improve load balancing and isolation, mitigate resource fragmentation, and differentiate request priorities and SLOs. Llumnix implements the rescheduling with an efficient and scalable live migration mechanism for requests and their in-memory states, and exploits it in a dynamic scheduling policy that unifies the multiple rescheduling scenarios elegantly. Our evaluations show that Llumnix improves tail latencies by an order of magnitude, accelerates high-priority requests by up to 1.5{\texttimes}, and delivers up to 36\% cost savings while achieving similar tail latencies, compared against state-of-the-art LLM serving systems. Llumnix is publicly available at https://github.com/AlibabaPAI/llumnix.},
+  booktitle = {Proceedings of the 18th USENIX Conference on Operating Systems Design and Implementation},
+  articleno = {10},
+  numpages  = {19},
+  location  = {Santa Clara, CA, USA},
+  series    = {OSDI'24}
+}
+
+@inproceedings{qin2025mooncake,
+  author    = {Ruoyu Qin and Zheming Li and Weiran He and Jialei Cui and Feng Ren and Mingxing Zhang and Yongwei Wu and Weimin Zheng and Xinran Xu},
+  title     = {Mooncake: Trading More Storage for Less Computation {\textemdash} A {KVCache-centric} Architecture for Serving {LLM} Chatbot},
+  booktitle = {23rd USENIX Conference on File and Storage Technologies (FAST 25)},
+  year      = {2025},
+  isbn      = {978-1-939133-45-8},
+  address   = {Santa Clara, CA},
+  pages     = {155--170},
+  url       = {https://www.usenix.org/conference/fast25/presentation/qin},
+  publisher = {USENIX Association},
+  month     = feb
+}
+
+@inproceedings{agrawal2024vidur,
+  author    = {Agrawal, Amey and Kedia, Nitin and Mohan, Jayashree and Panwar, Ashish and Kwatra, Nipun and Gulavani, Bhargav S. and Ramjee, Ramachandran and Tumanov, Alexey},
+  booktitle = {Proceedings of Machine Learning and Systems},
+  editor    = {P. Gibbons and G. Pekhimenko and C. De Sa},
+  pages     = {351--366},
+  title     = {VIDUR: A LARGE-SCALE SIMULATION FRAMEWORK FOR LLM INFERENCE},
+  url       = {https://proceedings.mlsys.org/paper_files/paper/2024/file/b74a8de47d2b3c928360e0a011f48351-Paper-Conference.pdf},
+  volume    = {6},
+  year      = {2024}
+}
+
+
+
+@inproceedings{sheng2024slora,
+  author    = {Sheng, Ying and Cao, Shiyi and Li, Dacheng and Hooper, Coleman and Lee, Nicholas and Yang, Shuo and Chou, Christopher and Zhu, Banghua and Zheng, Lianmin and Keutzer, Kurt and Gonzalez, Joseph E. and Stoica, Ion},
+  booktitle = {Proceedings of Machine Learning and Systems},
+  editor    = {P. Gibbons and G. Pekhimenko and C. De Sa},
+  pages     = {296--311},
+  title     = {SLoRA: Scalable Serving of Thousands of LoRA Adapters},
+  url       = {https://proceedings.mlsys.org/paper_files/paper/2024/file/906419cd502575b617cc489a1a696a67-Paper-Conference.pdf},
+  volume    = {6},
+  year      = {2024}
+}
+
+
+@inproceedings{zheng2024lmsyschat,
+  author    = {Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Li, Tianle and Zhuang, Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Li, Zhuohan and Lin, Zi and Xing, Eric  and Gonzalez, Joseph E and Stoica, Ion and Zhang, Hao},
+  booktitle = {International Conference on Learning Representations},
+  editor    = {B. Kim and Y. Yue and S. Chaudhuri and K. Fragkiadaki and M. Khan and Y. Sun},
+  pages     = {22225--22257},
+  title     = {LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset},
+  url       = {https://proceedings.iclr.cc/paper_files/paper/2024/file/5f9bfdfe3685e4ccdbc0e7fb29cccf2a-Paper-Conference.pdf},
+  volume    = {2024},
+  year      = {2024}
+}
+
+
+@article{cobbe2021gsm8k,
+  author  = {Karl Cobbe and Vineet Kosaraju and Mohammad Bavarian and Mark Chen and Heewoo Jun and Lukasz Kaiser and Matthias Plappert and Jerry Tworek and Jacob Hilton and Reiichiro Nakano and Christopher Hesse and John Schulman},
+  title   = {Training Verifiers to Solve Math Word Problems},
+  journal = {arXiv preprint arXiv:2110.14168},
+  year    = {2021},
+  url     = {https://arxiv.org/abs/2110.14168}
+}
+
+@article{zuo2026agentworld,
+  author  = {Yuxin Zuo and Zikai Xiao and Li Sheng and Fei Huang and Jianhong Tu and Yuxuan Liu and Tianyi Tang and Xiaomeng Hu and Yang Su and Qingfeng Lan and others},
+  title   = {{Qwen-AgentWorld}: Language World Models for General Agents},
+  journal = {arXiv preprint arXiv:2606.24597},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2606.24597}
+}
+
+@article{grattafiori2024llama3,
+  author  = {Aaron Grattafiori and Abhimanyu Dubey and Abhinav Jauhri and Abhinav Pandey and Abhishek Kadian and Ahmad Al-Dahle and Aiesha Letman and Akhil Mathur and Alan Schelten and Alex Vaughan and others},
+  title   = {The {Llama 3} Herd of Models},
+  journal = {arXiv preprint arXiv:2407.21783},
+  year    = {2024},
+  url     = {https://arxiv.org/abs/2407.21783}
+}
+
+@article{yang2025qwen3,
+  author  = {An Yang and Anfeng Li and Baosong Yang and Beichen Zhang and Binyuan Hui and Bo Zheng and Bowen Yu and Chang Gao and Chengen Huang and Chenxu Lv and others},
+  title   = {{Qwen3} Technical Report},
+  journal = {arXiv preprint arXiv:2505.09388},
+  year    = {2025},
+  url     = {https://arxiv.org/abs/2505.09388}
+}
+
+@misc{qwen2025next,
+  author       = {{Qwen Team}},
+  title        = {{Qwen3-Next-80B-A3B-Instruct}},
+  year         = {2025},
+  howpublished = {Model card},
+  url          = {https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct},
+  note         = {Accessed: Oct. 9, 2026}
+}
+
+@misc{vllm2026optimization,
+  author = {{vLLM Contributors}},
+  title  = {{vLLM} v0.17.0: Optimization and Tuning},
+  year   = {2026},
+  url    = {https://docs.vllm.ai/en/v0.17.0/configuration/optimization/},
+  note   = {Accessed: Oct. 9, 2026}
+}
+
+@misc{sglang2026tuning,
+  author = {{SGLang Contributors}},
+  title  = {{SGLang}: Hyperparameter Tuning},
+  year   = {2026},
+  url    = {https://docs.sglang.io/docs/advanced_features/hyperparameter_tuning},
+  note   = {Accessed: Oct. 9, 2026}
+}
+
+@inproceedings{pope2023scaling,
+  author    = {Pope, Reiner and Douglas, Sholto and Chowdhery, Aakanksha and Devlin, Jacob and Bradbury, James and Heek, Jonathan and Xiao, Kefan and Agrawal, Shivani and Dean, Jeff},
+  booktitle = {Proceedings of Machine Learning and Systems},
+  editor    = {D. Song and M. Carbin and T. Chen},
+  pages     = {606--624},
+  publisher = {Curan},
+  title     = {Efficiently Scaling Transformer Inference},
+  url       = {https://proceedings.mlsys.org/paper_files/paper/2023/file/c4be71ab8d24cdfb45e3d06dbfca2780-Paper-mlsys2023.pdf},
+  volume    = {5},
+  year      = {2023}
+}
+
+@inproceedings{wu2026fastserve,
+  author    = {Bingyang Wu and Yinmin Zhong and Zili Zhang and Shengyu Liu and Fangyue Liu and Yuanhang Sun and Gang Huang and Xuanzhe Liu and Xin Jin},
+  title     = {{FastServe}: {Iteration-Level} Preemptive Scheduling for Large Language Model Inference},
   booktitle = {23rd USENIX Symposium on Networked Systems Design and Implementation (NSDI 26)},
-  pages     = {825--848},
-  year      = {2026}
+  year      = {2026},
+  isbn      = {978-1-939133-54-0},
+  address   = {Renton, WA},
+  pages     = {57--74},
+  url       = {https://www.usenix.org/conference/nsdi26/presentation/wu-bingyang},
+  publisher = {USENIX Association},
+  month     = may
+}
+
+@inproceedings{lin2024parrot,
+  author    = {Chaofan Lin and Zhenhua Han and Chengruidong Zhang and Yuqing Yang and Fan Yang and Chen Chen and Lili Qiu},
+  title     = {Parrot: Efficient Serving of {LLM-based} Applications with Semantic Variable},
+  booktitle = {18th USENIX Symposium on Operating Systems Design and Implementation (OSDI 24)},
+  year      = {2024},
+  isbn      = {978-1-939133-40-3},
+  address   = {Santa Clara, CA},
+  pages     = {929--945},
+  url       = {https://www.usenix.org/conference/osdi24/presentation/lin-chaofan},
+  publisher = {USENIX Association},
+  month     = jul
+}
+
+@inproceedings{ye2025flashinfer,
+  author    = {Ye, Zihao and Chen, Lequn and Lai, Ruihang and Lin, Wuwei and Zhang, Yineng and Wang, Stephanie and Chen, Tianqi and Kasikci, Baris and Grover, Vinod and Krishnamurthy, Arvind and Ceze, Luis},
+  booktitle = {Proceedings of Machine Learning and Systems},
+  editor    = {M. Zaharia and G. Joshi and Y. Lin},
+  pages     = {},
+  publisher = {MLSys},
+  title     = {FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving},
+  url       = {https://proceedings.mlsys.org/paper_files/paper/2025/file/dbf02b21d77409a2db30e56866a8ab3a-Paper-Conference.pdf},
+  volume    = {7},
+  year      = {2025}
+}
+
+
+@inproceedings{narayanan2021megatron,
+  author    = {Deepak Narayanan and Mohammad Shoeybi and Jared Casper and Patrick LeGresley and Mostofa Patwary and Vijay Korthikanti and Dmitri Vainbrand and Prethvi Kashinkunti and Julie Bernauer and Bryan Catanzaro and Amar Phanishayee and Matei Zaharia},
+  title     = {Efficient Large-Scale Language Model Training on {GPU} Clusters Using {Megatron-LM}},
+  booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC)},
+  pages     = {1--15},
+  year      = {2021},
+  doi       = {10.1145/3458817.3476209}
+}
+
+@inproceedings{vaswani2017attention,
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, \L ukasz and Polosukhin, Illia},
+  booktitle = {Advances in Neural Information Processing Systems},
+  editor    = {I. Guyon and U. Von Luxburg and S. Bengio and H. Wallach and R. Fergus and S. Vishwanathan and R. Garnett},
+  pages     = {},
+  publisher = {Curran Associates, Inc.},
+  title     = {Attention is All you Need},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf},
+  volume    = {30},
+  year      = {2017}
+}
+
+@inproceedings{brown2020language,
+  author    = {Brown, Tom and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and Kaplan, Jared D and Dhariwal, Prafulla and Neelakantan, Arvind and Shyam, Pranav and Sastry, Girish and Askell, Amanda and Agarwal, Sandhini and Herbert-Voss, Ariel and Krueger, Gretchen and Henighan, Tom and Child, Rewon and Ramesh, Aditya and Ziegler, Daniel and Wu, Jeffrey and Winter, Clemens and Hesse, Chris and Chen, Mark and Sigler, Eric and Litwin, Mateusz and Gray, Scott and Chess, Benjamin and Clark, Jack and Berner, Christopher and McCandlish, Sam and Radford, Alec and Sutskever, Ilya and Amodei, Dario},
+  booktitle = {Advances in Neural Information Processing Systems},
+  editor    = {H. Larochelle and M. Ranzato and R. Hadsell and M.F. Balcan and H. Lin},
+  pages     = {1877--1901},
+  publisher = {Curran Associates, Inc.},
+  title     = {Language Models are Few-Shot Learners},
+  url       = {https://proceedings.neurips.cc/paper_files/paper/2020/file/1457c0d6bfcb4967418bfb8ac142f64a-Paper.pdf},
+  volume    = {33},
+  year      = {2020}
+}
+
+
+@inproceedings{wu2024loongserve,
+  author    = {Bingyang Wu and Shengyu Liu and Yinmin Zhong and Peng Sun and Xuanzhe Liu and Xin Jin},
+  title     = {{LoongServe}: Efficiently Serving Long-Context Large Language Models with Elastic Sequence Parallelism},
+  booktitle = {Proceedings of the ACM SIGOPS 30th Symposium on Operating Systems Principles (SOSP)},
+  pages     = {640--654},
+  year      = {2024},
+  doi       = {10.1145/3694715.3695948}
+}
+
+
+
+@inproceedings{patke2024qlm,
+  author    = {Archit Patke and Dhemath Reddy and Saurabh Jha and Haoran Qiu and Christian Pinto and Chandra Narayanaswami and Zbigniew Kalbarczyk and Ravishankar Iyer},
+  title     = {Queue Management for {SLO-Oriented} Large Language Model Serving},
+  booktitle = {Proceedings of the ACM Symposium on Cloud Computing (SoCC)},
+  pages     = {18--35},
+  year      = {2024},
+  doi       = {10.1145/3698038.3698523}
+}
+
+@inproceedings{kamath2025pod,
+  author    = {Aditya K. Kamath and Ramya Prabhu and Jayashree Mohan and Simon Peter and Ramachandran Ramjee and Ashish Panwar},
+  title     = {{POD-Attention}: Unlocking Full {Prefill-Decode} Overlap for Faster {LLM} Inference},
+  booktitle = {Proceedings of the 30th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 (ASPLOS)},
+  pages     = {897--912},
+  year      = {2025},
+  doi       = {10.1145/3676641.3715996}
+}
+
+@inproceedings{gong2025pastfuture,
+  author    = {Ruihao Gong and Shihao Bai and Siyu Wu and Yunqian Fan and Zaijun Wang and Xiuhong Li and Hailong Yang and Xianglong Liu},
+  title     = {{Past-Future} Scheduler for {LLM} Serving under {SLA} Guarantees},
+  booktitle = {Proceedings of the 30th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 (ASPLOS)},
+  pages     = {798--813},
+  year      = {2025},
+  doi       = {10.1145/3676641.3716011}
+}
+
+@inproceedings{zhang2024llmcompass,
+  author    = {Hengrui Zhang and August Ning and Rohan Baskar Prabhakar and David Wentzlaff},
+  title     = {{LLMCompass}: Enabling Efficient Hardware Design for Large Language Model Inference},
+  booktitle = {2024 ACM/IEEE 51st Annual International Symposium on Computer Architecture (ISCA)},
+  pages     = {1080--1096},
+  year      = {2024},
+  doi       = {10.1109/isca59077.2024.00082}
+}
+
+@inproceedings{prabhu2025vattention,
+  author    = {Ramya Prabhu and Ajay Nayak and Jayashree Mohan and Ramachandran Ramjee and Ashish Panwar},
+  title     = {{vAttention}: Dynamic Memory Management for Serving {LLMs} without {PagedAttention}},
+  booktitle = {Proceedings of the 30th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 1 (ASPLOS)},
+  pages     = {1133--1150},
+  year      = {2025},
+  doi       = {10.1145/3669940.3707256}
+}
+
+@inproceedings{aminabadi2022deepspeed,
+  author    = {Reza Yazdani Aminabadi and Samyam Rajbhandari and Ammar Ahmad Awan and Cheng Li and Du Li and Elton Zheng and Olatunji Ruwase and Shaden Smith and Minjia Zhang and Jeff Rasley and Yuxiong He},
+  title     = {{DeepSpeed-Inference}: Enabling Efficient Inference of Transformer Models at Unprecedented Scale},
+  booktitle = {SC22: International Conference for High Performance Computing, Networking, Storage and Analysis},
+  pages     = {1--15},
+  year      = {2022},
+  doi       = {10.1109/sc41404.2022.00051}
+}
+
+@inproceedings{qiao2026conserve,
+  author    = {Yifan Qiao and Shan Yu and Shu Anzai and Haoran Ma and Shuo Yang and Yang Wang and Miryung Kim and Yongji Wu and Yang Zhou and Jiarong Xing and Joseph E. Gonzalez and Ion Stoica and Harry Xu},
+  title     = {{ConServe}: Fine-Grained {GPU} Harvesting for {LLM} Online and Offline Co-Serving},
+  booktitle = {Proceedings of the 43rd International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {306},
+  pages     = {101429--101443},
+  year      = {2026},
+  url       = {https://proceedings.mlr.press/v306/qiao26i.html}
+}
+
+@inproceedings{du2026ecoserve,
+  author    = {Jiangsu Du and Hongbin Zhang and Taosheng Wei and Zhenyi Zheng and Jiazhi Jiang and Kaiyi Wu and Zhiguang Chen and Yutong Lu},
+  title     = {Efficient {LLM} Serving on Commodity {GPU} Clusters with {Data-Reduced Cross-Instance} Orchestration},
+  booktitle = {20th USENIX Symposium on Operating Systems Design and Implementation (OSDI 26)},
+  pages     = {1787--1802},
+  year      = {2026},
+  url       = {https://www.usenix.org/conference/osdi26/presentation/du}
 }

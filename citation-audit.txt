@@ -1,0 +1,345 @@
+TANGO 引用复核说明（2026-10-09）
+
+此次复核以句子与来源的对应关系为标准。现有 40 条实际引用：34 篇正式会议论文、4 份数据集/模型技术报告、2 份官方文档或模型卡。
+此前撤下 22 条位置对应过宽、范围不明或重复堆叠的文献。本次为 DeepSpeed-Inference 与 Past-Future 找到更直接的新位置后恢复，另加入 8 篇正式会议论文；没有恢复其原来不合适的引用位置。正文原有文字保持不变。
+发表信息真实与引用位置合理分别核对。下列依据写明了引用的支撑范围；实验数值、采样规模、重实现行为等仍是本文的实验说明。
+
+一、实质纠错
+原先把 Sarathi-Serve 挂在“without considering the TPOT requirements of active decode requests”之后不严谨。Sarathi-Serve 的 Section 4.3 和 Algorithm 3 明确用应用 TBT SLO 决定 token budget。已撤下该处 Sarathi 引用；保留其分块预填充和混合批处理引用。
+核查来源：https://www.usenix.org/system/files/osdi24-agrawal.pdf（正文 pp. 124–125）。
+vLLM 文档的引用已移到“fixed per-step budget”分句后，只支撑配置机制。原句“existing works ... without considering ...”仍是原文较宽泛的判断；依据“不改正文”的要求，本次没有改写它，也不将其视为已由文档证明。
+保留的时间模型引用只支持批次组成、上下文长度和 KV 访问成本这些因素，不支持本文具体测量结果或声称本文公式直接源于它们。
+
+二、保留文献与对应位置（编号与当前正文首次出现顺序一致）
+
+1. vaswani2017attention
+   文献：Attention Is All You Need
+   位置：section/introduction.tex:5
+   支撑：Transformer 架构的基础出处；作为 LLM 的模型背景引用。
+   核查依据：NIPS 2017 正式论文摘要及 Transformer 架构；不用于证明多应用请求合并、GPU 利用率或成本效果。
+   会议等级：NeurIPS（原名 NIPS）为 CCF A 类，官方目录：https://www.ccf.org.cn/Academic_Evaluation/AI/
+   来源：https://proceedings.neurips.cc/paper_files/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html
+
+2. brown2020language
+   文献：Language Models Are Few-Shot Learners
+   位置：section/introduction.tex:5
+   支撑：大规模自回归语言模型的代表工作 GPT-3 及跨任务少样本能力。
+   核查依据：NeurIPS 2020 正式论文摘要，GPT-3 为 175B 参数自回归语言模型；作为 LLM 背景引用，不用于支撑服务调度机制。
+   会议等级：NeurIPS 为 CCF A 类，官方目录：https://www.ccf.org.cn/Academic_Evaluation/AI/
+   来源：https://proceedings.neurips.cc/paper_files/paper/2020/hash/1457c0d6bfcb4967418bfb8ac142f64a-Abstract.html
+
+3. lin2024parrot
+   文献：Parrot: Efficient Serving of LLM-based Applications with Semantic Variable
+   位置：section/introduction.tex:5
+   支撑：来自多个租户的不同 LLM 应用会向公共 LLM 服务发起多个请求。
+   核查依据：OSDI 2024 论文摘要/Introduction；仅放在引言“不同应用”的背景分句后。
+   来源：https://www.usenix.org/conference/osdi24/presentation/lin-chaofan
+
+4. yu2022orca
+   文献：Orca: A Distributed Serving System for Transformer-Based Generative Models
+   位置：section/related-work.tex:7；section/background-and-motivation.tex:11；section/background-and-motivation.tex:36；section/introduction.tex:5；section/introduction.tex:19
+   支撑：迭代级调度、迭代边界加入/移出请求及生成式推理的批处理。
+   核查依据：OSDI 2022 论文摘要及 iteration-level scheduling 机制。
+   来源：https://www.usenix.org/conference/osdi22/presentation/yu
+
+5. kwon2023vllm
+   文献：Efficient Memory Management for Large Language Model Serving with PagedAttention
+   位置：section/related-work.tex:8；section/background-and-motivation.tex:11；section/background-and-motivation.tex:155；section/introduction.tex:5；section/introduction.tex:20；section/introduction.tex:46；section/introduction.tex:107；section/evaluation-of-tango.tex:20
+   支撑：PagedAttention 的分页 KV 管理、内存共享与服务调度；用于本文所述 vLLM 基线。
+   核查依据：SOSP 2023 的 PagedAttention 和 scheduling 设计；具体 0.17.0 分块配置由版本文档补充。
+   来源：https://doi.org/10.1145/3600006.3613165
+
+6. sun2024llumnix
+   文献：Llumnix: Dynamic Scheduling for Large Language Model Serving
+   位置：section/related-work.tex:13；section/introduction.tex:6
+   支撑：异构资源/延迟需求、不同请求优先级和 SLO 下的运行时重调度。
+   核查依据：OSDI 2024 论文摘要；不把 live migration 说成本文的 deadline 算法。
+   来源：https://www.usenix.org/conference/osdi24/presentation/sun-biao
+
+7. goel2026qoserve
+   文献：QoServe: Breaking the Silos of LLM Inference Serving
+   位置：section/related-work.tex:13；section/introduction.tex:6；section/introduction.tex:7
+   支撑：精细 QoS 分类、异构延迟目标、聊天应用的 TTFT 需求、混合优先级和随状态调整的调度。
+   核查依据：ASPLOS 2026 正式论文摘要、Introduction 和 Section 2.1。Section 2.1 的 Latency metrics / Time to First Token 明确说明 TTFT 对 chatbot 等交互式应用至关重要，影响用户对响应速度的感知；用于引言聊天场景的首 token 延迟分句。论文也指出交互式应用同时关注 TBT，本引用不表示聊天只关注 TTFT。
+   会议等级：ASPLOS 为 CCF A 类，已核对官方目录：https://www.ccf.org.cn/c/2017-03-13/586370.shtml
+   来源：https://doi.org/10.1145/3779212.3790206
+
+8. zhang2026jitserve
+   文献：JITServe: SLO-aware LLM Serving with Imprecise Request Information
+   位置：section/related-work.tex:16；section/introduction.tex:6；section/introduction.tex:7；section/introduction.tex:18；section/introduction.tex:107；section/evaluation-of-tango.tex:20
+   支撑：异构响应需求、交互式请求的 TTFT/TBT、实时翻译场景中的低逐 token 延迟需求、QRF 输出长度上界预测与逐步更新。
+   核查依据：NSDI 2026 Sections 2.1、4.1 和 5；表 1（p. 827）在 Real-time translation 行报告 36.2% 用户偏好低逐 token 延迟，表注将 Real-Time 明确定义为此类需求。此处支持实时翻译中存在这类需求，不意味着所有翻译请求都只有同一种 SLO；不用于背书本文自有重实现的效果。
+   会议等级：NSDI 为 CCF A 类，已核对官方目录：https://www.ccf.org.cn/Academic_Evaluation/CN/zgjsjxhtjgjxshy/al/2019-05-14/665212.shtml
+   来源：https://www.usenix.org/conference/nsdi26/presentation/zhang-wei
+
+9. agrawal2024sarathi
+   文献：Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve
+   位置：section/related-work.tex:23；section/background-and-motivation.tex:41；section/background-and-motivation.tex:243；section/introduction.tex:11；section/introduction.tex:12；section/introduction.tex:19
+   支撑：分块预填充、与 decode 共置的 stall-free batching、prefill/decode 干扰。
+   核查依据：OSDI 2024 Sections 4.1–4.3 和 Algorithm 3。其预算根据 TBT SLO 选取，不能用于证明“完全未考虑 decode 延迟要求”。
+   来源：https://www.usenix.org/conference/osdi24/presentation/agrawal
+
+10. zhong2024distserve
+   文献：DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving
+   位置：section/related-work.tex:22；section/background-and-motivation.tex:31；section/introduction.tex:11；section/evaluation-of-tango.tex:31
+   支撑：prefill/decode 分离、分别满足 TTFT/TPOT 约束及 goodput 的定义。
+   核查依据：OSDI 2024 摘要和系统目标。
+   来源：https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin
+
+11. patel2024splitwise
+   文献：Splitwise: Efficient Generative LLM Inference Using Phase Splitting
+   位置：section/related-work.tex:21；section/background-and-motivation.tex:243；section/introduction.tex:12
+   支撑：将 prompt computation 与 token generation 分配到不同机器，以及两阶段资源特征差异。
+   核查依据：ISCA 2024 正式论文摘要与 Microsoft Research 论文页；已撤出本文步时模型的引用组。
+   来源：https://doi.org/10.1109/isca59077.2024.00019
+
+12. qin2025mooncake
+   文献：Mooncake: Trading More Storage for Less Computation---A KVCache-centric Architecture for Serving LLM Chatbot
+   位置：section/related-work.tex:21；section/introduction.tex:12
+   支撑：prefill 和 decoding 集群分离，以及 KVCache-centric 服务体系。
+   核查依据：FAST 2025 论文摘要；用于阶段部署与资源分离概述。
+   来源：https://www.usenix.org/conference/fast25/presentation/qin
+
+13. ruan2026libra
+   文献：Libra: Flexible Request Partitioning and Scheduling for Serving Unbalanced and Dynamic LLM Workloads
+   位置：section/introduction.tex:17
+   支撑：prefill/decode 分离部署中，阶段负载变化使两侧利用率不均；固定分区可使一侧繁忙而另一侧闲置，并带来 prefill 排队延迟。
+   核查依据：NSDI 2026 §§2.2–2.4（pp. 1244–1246），尤其 §2.3 的动态阶段需求、§2.4/Table 1 的资源失衡分析；§6.2 的 TTFT analysis（p. 1252）指出负载均衡降低 prefill 排队延迟。作者元数据来自 USENIX 正式会议页。
+   范围说明：直接证据针对动态输入/输出工作负载与阶段资源失衡；urgent requests 和 tight-SLO 请求的阶段需求变化是本文场景下的推论，该论文没有直接验证这一整句的多 SLO 因果链。按用户要求保留正文原句，并将引用放在逗号前，不将句末推论冒充来源的原始结论。
+   会议等级：NSDI 为 CCF A 类，官方目录：https://www.ccf.org.cn/Academic_Evaluation/CN/zgjsjxhtjgjxshy/al/2019-05-14/665212.shtml
+   来源：https://www.usenix.org/conference/nsdi26/presentation/ruan-libra；全文：https://www.usenix.org/system/files/nsdi26-ruan-libra.pdf
+
+14. wu2024loongserve
+   文献：LoongServe: Efficiently Serving Long-Context Large Language Models with Elastic Sequence Parallelism
+   位置：section/introduction.tex:17
+   支撑：固定的阶段分组与动态请求资源需求不匹配，导致资源效率问题。
+   核查依据：Section 1、2.4 与 8；只补充静态资源分组的局限，不能单独证明本文特定 tight-SLO 请求的排队结果。
+   会议等级：SOSP 2024，CCF A
+   来源：https://doi.org/10.1145/3694715.3695948
+
+15. hong2025sola
+   文献：SOLA: Optimizing SLO Attainment for Large Language Model Serving with State-Aware Scheduling
+   位置：section/related-work.tex:14；section/introduction.tex:18；section/introduction.tex:107；section/evaluation-of-tango.tex:20；section/evaluation-of-tango.tex:31
+   支撑：状态感知地控制请求执行顺序和迭代工作量，联合优化 TTFT/TPOT 达标率。
+   核查依据：MLSys 2025 论文摘要与状态感知调度设计。
+   来源：https://proceedings.mlsys.org/paper_files/paper/2025/hash/bc82dbfbfa43232be85b8d9838f49c3e-Abstract-Conference.html
+
+16. zheng2024sglang
+   文献：SGLang: Efficient Execution of Structured Language Model Programs
+   位置：section/related-work.tex:9；section/introduction.tex:20
+   支撑：RadixAttention 复用相同前缀的 KV cache，以及结构化语言模型程序执行。
+   核查依据：NeurIPS 2024 正文 Section 3；分块 prefill 配置另由官方运行时文档支撑。
+   来源：https://doi.org/10.52202/079017-2000
+
+17. yang2025qwen3
+   文献：Qwen3 Technical Report
+   位置：section/background-and-motivation.tex:118；section/introduction.tex:47；section/introduction.tex:107；section/evaluation-of-tango.tex:14
+   支撑：Qwen3-14B/32B 模型的官方技术出处。
+   核查依据：Qwen3 官方技术报告与 Qwen/Qwen3-14B 官方模型卡的 Citation 部分；复用文中已有技术报告条目，未查到正式会议版本。仅标注模型出处，53.72% SLO 达标率与具体实验配置为本文自身测量。
+   来源：https://arxiv.org/abs/2505.09388
+
+18. cobbe2021gsm8k
+   文献：Training Verifiers to Solve Math Word Problems
+   位置：section/background-and-motivation.tex:68；section/background-and-motivation.tex:120；section/introduction.tex:47
+   支撑：GSM8K 数据集的原始出处。
+   核查依据：Training Verifiers to Solve Math Word Problems 技术报告；本文选择全部训练/测试题及输出长度使用方式为实验设置。
+   来源：https://arxiv.org/abs/2110.14168
+
+19. patke2024qlm
+   文献：Queue Management for SLO-Oriented Large Language Model Serving
+   位置：section/introduction.tex:61
+   支撑：严格 SLO 请求应优先于可容忍等待的宽松 SLO 请求，以缓解队头阻塞。
+   核查依据：Introduction（p. 19）明确讨论 relaxed SLO 排在队尾、tight SLO 排在队首，以及 TTFT 场景；支持 FCFS 不考虑紧迫性的背景论述，不用于证明本文实验数字。
+   会议等级：SoCC 2024，CCF B
+   来源：https://doi.org/10.1145/3698038.3698523
+
+20. grattafiori2024llama3
+   文献：The Llama 3 Herd of Models
+   位置：section/background-and-motivation.tex:118；section/background-and-motivation.tex:119；section/introduction.tex:107；section/evaluation-of-tango.tex:14；section/evaluation-of-tango.tex:198
+   支撑：Llama 3.1 模型族的原始模型报告。
+   核查依据：The Llama 3 Herd of Models 技术报告；不把它当作本论文服务算法的证据。
+   来源：https://arxiv.org/abs/2407.21783
+
+21. qwen2025next
+   文献：Qwen3-Next-80B-A3B-Instruct
+   位置：section/background-and-motivation.tex:119；section/introduction.tex:107；section/evaluation-of-tango.tex:198
+   支撑：Qwen3-Next-80B-A3B-Instruct 的官方模型出处和 MoE 属性。
+   核查依据：Qwen 官方模型卡。
+   来源：https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct
+
+22. li2026adaserve
+   文献：AdaServe: Accelerating Multi-SLO LLM Serving with SLO-Customized Speculative Decoding
+   位置：section/background-and-motivation.tex:30
+   支撑：不同请求和应用具有异构延迟目标。
+   核查依据：Introduction 与 Figure 1/2；仅支撑 Multi-SLO 中“跨请求/应用的目标异质性”，不声称 TANGO 使用该文的推测解码或采用其 SLO 公式。
+   会议等级：EuroSys 2026，CCF A
+   来源：https://doi.org/10.1145/3767295.3769315
+
+23. wu2026fastserve
+   文献：FastServe: Iteration-Level Preemptive Scheduling for Large Language Model Inference
+   位置：section/background-and-motivation.tex:38
+   支撑：自回归执行允许逐输出 token 的抢占，调度器可以在迭代间重新选择请求。
+   核查依据：NSDI 2026 正式论文摘要的 iteration-level preemption 和 MLFQ；仅支撑逐迭代调度。
+   来源：https://www.usenix.org/conference/nsdi26/presentation/wu-bingyang
+
+24. du2026ecoserve
+   文献：Efficient LLM Serving on Commodity GPU Clusters with Data-Reduced Cross-Instance Orchestration
+   位置：section/background-and-motivation.tex:40
+   支撑：较长的 prefill 与 decode 共同调度会延迟 decode token。
+   核查依据：Section 2.4.1（p. 1790）明确说明 prefill 比单个 decode step 更长，联合调度延迟 decode、增加 TPOT；引用放在背景介绍，不支撑本文测量值。
+   会议等级：OSDI 2026，CCF A
+   来源：https://www.usenix.org/conference/osdi26/presentation/du
+
+25. zheng2024lmsyschat
+   文献：LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset
+   位置：section/background-and-motivation.tex:64；section/background-and-motivation.tex:120
+   支撑：LMSYS-Chat-1M 数据集及一百万条、25 个模型的真实对话背景。
+   核查依据：ICLR 2024 数据集论文。
+   来源：https://proceedings.iclr.cc/paper_files/paper/2024/hash/5f9bfdfe3685e4ccdbc0e7fb29cccf2a-Abstract-Conference.html
+
+26. zuo2026agentworld
+   文献：Qwen-AgentWorld: Language World Models for General Agents
+   位置：section/background-and-motivation.tex:72；section/background-and-motivation.tex:121
+   支撑：AgentWorldBench 及 SWE 域的原始出处。
+   核查依据：Qwen-AgentWorld 技术报告和官方仓库的 AgentWorldBench 数据格式；99 条轨迹及 1,024 个前缀变体是本文实验设置。
+   来源：https://arxiv.org/abs/2606.24597
+
+27. wang2025burstgpt
+   文献：BurstGPT: A Real-World Workload Dataset to Optimize LLM Serving Systems
+   位置：section/background-and-motivation.tex:78；section/background-and-motivation.tex:121
+   支撑：BurstGPT 真实 LLM 请求工作负载数据集的出处。
+   核查依据：KDD 2025 正式论文。本文具体筛选、采样和回放方式为本文实验设置。
+   来源：https://doi.org/10.1145/3711896.3737413
+
+28. pope2023scaling
+   文献：Efficiently Scaling Transformer Inference
+   位置：section/background-and-motivation.tex:243
+   支撑：prefill/生成阶段的计算与内存访问特征。
+   核查依据：MLSys 2023 正式论文的 Introduction 和推理效率分析。引用放在“两阶段特征”分句后，不支撑本文实测数值。
+   来源：https://proceedings.mlsys.org/paper_files/paper/2023/file/c4be71ab8d24cdfb45e3d06dbfca2780-Paper-mlsys2023.pdf
+
+29. kamath2025pod
+   文献：POD-Attention: Unlocking Full Prefill-Decode Overlap for Faster LLM Inference
+   位置：section/background-and-motivation.tex:243
+   支撑：prefill 计算密集、decode 访存密集，二者具有不同执行特征。
+   核查依据：Abstract、Section 2 与 Figure 1；只放在 compute-intensive prefill / memory-intensive decode 分句后，不表示该文测得本文的 1.3 倍差异。
+   会议等级：ASPLOS 2025，CCF A
+   来源：https://doi.org/10.1145/3676641.3715996
+
+30. narayanan2021megatron
+   文献：Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM
+   位置：section/tango-methodology.tex:49
+   支撑：张量并行这一实现基础。
+   核查依据：SC 2021 Megatron-LM 论文的张量并行讨论；vLLM v0.17.0 官方 parallelism_scaling 文档明确说明使用 Megatron-LM 张量并行算法。
+   来源：https://doi.org/10.1145/3458817.3476209
+
+31. aminabadi2022deepspeed
+   文献：DeepSpeed-Inference: Enabling Efficient Inference of Transformer Models at Unprecedented Scale
+   位置：section/tango-methodology.tex:49
+   支撑：Transformer 推理中的张量并行机制。
+   核查依据：Section II 与 IV-A：横向切分算子、聚合多 GPU 显存带宽并通过通信合并结果；仅作 tensor parallelism 的机制出处，不表示 TANGO 使用 DeepSpeed。此文此前从“多应用共享模型”处撤下，本次仅在这一更直接的位置恢复。
+   会议等级：SC 2022，CCF A
+   来源：https://doi.org/10.1109/SC41404.2022.00051
+
+32. gong2025pastfuture
+   文献：Past-Future Scheduler for LLM Serving under SLA Guarantees
+   位置：section/deadline-aware-request-dispatcher.tex:60
+   支撑：运行请求的 KV-cache 内存占用限制新请求的准入，单独重排等待队列不能消除容量约束。
+   核查依据：Section 2.3、3.3 与 Figures 5/6：新增请求能否进入运行批次取决于内存占用与释放。只支撑内存约束的背景，不支撑 TANGO 的 deadline victim 选择规则。此文此前从逐迭代重调度的泛泛表述处撤下，本次在内存准入约束处恢复。
+   会议等级：ASPLOS 2025，CCF A
+   来源：https://doi.org/10.1145/3676641.3716011
+
+33. agrawal2024vidur
+   文献：Vidur: A Large-Scale Simulation Framework for LLM Inference
+   位置：section/step-time-model-guided-token-allocator.tex:33
+   支撑：迭代时延随 prefill/decode 组成、请求上下文长度、KV 读取量变化。
+   核查依据：MLSys 2024 Sections 3、4.1、4.3，尤其 sequence-level operators 的依赖和 KV 总量建模。仅支撑代价因素，不是本文回归公式的来源。
+   来源：https://proceedings.mlsys.org/paper_files/paper/2024/hash/b74a8de47d2b3c928360e0a011f48351-Abstract-Conference.html
+
+34. ye2025flashinfer
+   文献：FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving
+   位置：section/step-time-model-guided-token-allocator.tex:33
+   支撑：attention 的代价受 query/KV 长度影响，异长请求带来不同计算和内存访问开销。
+   核查依据：MLSys 2025 正文 Section 2.1 和 Algorithm 1 的 query/KV-length 输入及代价；仅支撑代价因素，不宣称其提出 TANGO 的步时回归模型。
+   来源：https://proceedings.mlsys.org/paper_files/paper/2025/file/dbf02b21d77409a2db30e56866a8ab3a-Paper-Conference.pdf
+
+35. zhang2024llmcompass
+   文献：LLMCompass: Enabling Efficient Hardware Design for Large Language Model Inference
+   位置：section/step-time-model-guided-token-allocator.tex:33
+   支撑：输入规模、batch size、序列长度及算子计算/访存特征影响推理时延。
+   核查依据：Section II-B、III 与 Figure 5；与 Vidur、FlashInfer 一同支撑成本建模的背景因素，不作为 TANGO 五系数模型或其拟合方法的出处。
+   会议等级：ISCA 2024，CCF A
+   来源：https://doi.org/10.1109/ISCA59077.2024.00082
+
+36. qiao2026conserve
+   文献：ConServe: Fine-Grained GPU Harvesting for LLM Online and Offline Co-Serving
+   位置：section/step-time-model-guided-token-allocator.tex:52
+   支撑：相同 token 数的 prefill chunk 在更长已有上下文下可能耗时更多。
+   核查依据：Section 4.2：Llama-3.1-8B / H100 上 2048-token chunk 在新请求与已有 40K context 请求中的时延分别为 51 ms、124 ms。引用仅支撑定性背景，不借用其数值作为本文实验；未放在 TANGO 自己的预测公式后。正式会议条目：PMLR 306:101429–101443。
+   会议等级：ICML 2026，CCF A
+   来源：https://proceedings.mlr.press/v306/qiao26i.html
+
+37. vllm2026optimization
+   文献：vLLM v0.17.0: Optimization and Tuning
+   位置：section/evaluation-of-tango.tex:27
+   支撑：vLLM 0.17.0 的 chunked prefill、max_num_batched_tokens 和运行配置。
+   核查依据：官方版本文档的 Chunked Prefill/Performance Tuning。引用已移至“固定 token budget”分句，不背书后面的广泛批评。
+   来源：https://docs.vllm.ai/en/v0.17.0/configuration/optimization/
+
+38. sheng2024slora
+   文献：SLoRA: Scalable Serving of Thousands of LoRA Adapters
+   位置：section/related-work.tex:6
+   支撑：统一分页内存池管理不同秩 adapter 和不同长度 KV cache，降低碎片并支撑批处理。
+   核查依据：MLSys 2024 论文摘要；仅用于 related work 的内存管理概述。
+   来源：https://proceedings.mlsys.org/paper_files/paper/2024/hash/906419cd502575b617cc489a1a696a67-Abstract-Conference.html
+
+39. shi2026elora
+   文献：ELORA: Efficient LoRA and KV Cache Management for Multi-LoRA LLM Serving
+   位置：section/related-work.tex:6
+   支撑：多 LoRA 服务中依赖感知的 LoRA/KV-cache 管理与性能导向换入换出。
+   核查依据：本地 HPCA 2026 正式论文摘要和设计部分；仅用于 related work 的内存管理概述。
+   来源：https://doi.org/10.1109/hpca68181.2026.11408492
+
+40. prabhu2025vattention
+   文献：vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention
+   位置：section/related-work.tex:6
+   支撑：LLM serving 通过动态 KV-cache 内存管理改善生成性能。
+   核查依据：Abstract 与设计部分：保持虚拟地址连续、按需分配物理内存；对应 related work 的“efficient batching and memory management”中的内存管理部分，不声称该文实现 TANGO 的逐请求 TTFT/TPOT 调度。
+   会议等级：ASPLOS 2025，CCF A
+   来源：https://doi.org/10.1145/3669940.3707256
+
+三、撤下的文献与原因
+
+后续调整：依照用户要求，撤下 translation 后新增的 IISWC 2024 引用 na2024understanding，并改为复用 CCF A 类会议 NSDI 2026 的 zhang2026jitserve。下列 22 条为此前复核时撤下的文献。
+
+ainslie2023gqa：GQA 讨论分组查询注意力；原句只定义通用 KV-cache 解码流程，未讨论注意力头分组。
+dao2022flashattention：FlashAttention 的 IO 优化不是原句“prefill 并行处理 prompt”的直接论据；阶段定义由 Orca/vLLM 支撑。
+vaswani2017attention：原句没有讨论 Transformer 架构；阶段定义已有直接的推理系统来源，撤下泛化的基础模型引用。
+li2023alpaserve：重点是多模型部署、模型并行和统计复用；不能直接支撑该句不同 LLM 应用的 TTFT/TPOT 需求。
+wu2024loongserve：核心是弹性序列并行；原句只分类分离部署/共置，保留直接研究该选择的 Splitwise、Mooncake、Sarathi。
+shen2019nexus：研究 DNN 视频分析服务；当前相关工作未交代与 LLM 调度的范围差别。
+han2022reef：研究 DNN 内核级抢占；当前段落是 LLM 请求调度且没有解释调度粒度差别。
+gujarati2020clockwork：研究一般 DNN 服务；与同段 LLM 调度的范围未区分，改用 Llumnix/QoServe 支撑。
+gao2024cachedattention：优化多轮对话的 KV 复用和 TTFT，并非交互应用“优先首 token”的需求来源。
+yu2025pensieve：重点是会话状态缓存；原引用分句没有讨论状态复用。
+gim2024promptcache：重点是模块化 prompt 状态复用；原引用分句没有讨论 prompt 模块或复用。
+aminabadi2022deepspeed（历史撤下位置；本次已在 tensor parallelism 处恢复）：重点是大模型推理并行与优化，原引用句强调不同应用请求在共享实例上的聚合；保留 Orca/vLLM。
+narayanan2023estimating：重点是理想化推理效率指标；原句讲混合批次和上下文长度的运行代价，改保留 Vidur/FlashInfer 等直接机制来源。
+dao2024flashattention2：重点是注意力内核并行和工作划分；不以该文替代混合推理步时模型的依据。
+sheng2023flexgen：内存受限的离线高吞吐推理不在现有段落中展开；撤下宽泛内存管理句后的堆叠引用。
+lee2024infinigen：原文未讨论选择性 KV 预取/卸载；撤下宽泛内存管理句后的堆叠引用。
+ye2024chunkattention：原文未展开该文的前缀感知 KV 管理与两阶段分区；不把主题相近作为额外引用理由。
+yao2025cacheblend：原文未讨论 RAG 缓存知识融合；撤下宽泛内存管理句后的堆叠引用。
+chen2024punica：原引用点为一般应用聚合，没有介绍多 LoRA 的跨模型批处理；撤下。
+wu2024dlora：原文没有介绍 adapter 合并/拆分与迁移机制；撤下泛泛批处理句后的额外列举。
+zhu2025nanoflow：原文没有讨论 nano-batch 与设备内资源重叠；撤下泛泛批处理句后的额外列举。
+gong2025pastfuture（历史撤下位置；本次已在 KV 内存准入约束处恢复）：原句只讲逐迭代重调度，未讨论其输出长度分布和峰值内存估计；保留直接展示逐 token 抢占的 FastServe。
+
+四、验证
+本次新增 10 个实际使用的参考文献条目（9 篇 CCF A 类会议、1 篇 CCF B 类会议），没有新增 arXiv 条目。
+会议分类依据：https://www.ccf.org.cn/Academic_Evaluation/ARCH_DCP_SS/ 及 https://www.ccf.org.cn/Academic_Evaluation/AI/；SOSP/OSDI 分类沿用 CCF 软件系统目录。
+移除 cite 命令后，所有 .tex 文件与本次修改前的快照逐字一致；保留用户此前自行修改的正文。
+所有新增条目都由具体正文位置引用，未使用 nocite 填充数量；sglang2026tuning 的已有未使用 BibTeX 条目保留；chen2025slosserve 已按用户要求删除。
+最终编译通过，共 12 页，40 条参考文献；89 个 PDF 引用链接均有有效目标。无未定义引用或 Overfull 警告。新增引用所在第 1–7、10 页和参考文献所在第 11–12 页均已渲染检查，无溢出或重叠。
+
+按用户要求删除未引用的 SLOs-Serve 预印本条目，并将已有 li2026adaserve（EuroSys 2026 正式会议论文）移至其原位置。未新增重复条目、未改正文引用，实际参考文献仍为 40 条。

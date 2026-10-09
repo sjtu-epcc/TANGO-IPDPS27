@@ -9,7 +9,7 @@ The allocator decides how many prefill tokens can execute alongside the active d
 More prefill work advances first-token generation, but also lengthens the step and delays the next decode tokens.
 Our goal is therefore to admit as much prefill work as possible within the time available for the step.
 
-For step $k$, let $d_k$ be the number of active decode tokens and $p$ a candidate prefill allocation drawn from pending requests in the dispatcher's order.
+For step $k$, let $d_k$ be the number of active decode tokens and $p$ be a candidate prefill allocation drawn from pending requests in the dispatcher's order.
 Denote the predicted duration of the mixed step by $\widehat{L}_k(p)$ and its time budget by $\Delta_k$.
 The allocator selects
 \begin{equation}
@@ -30,7 +30,7 @@ Together, they turn the available time into a prefill chunk size.
 \label{subsec:step-time-modeling}
 
 The first ingredient is $\widehat{L}_k(p)$, which predicts the duration of the entire mixed step.
-As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, equal token counts can incur different execution times because batch composition and context lengths change the computation and KV-cache access costs.
+As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, equal token counts can incur different execution times because batch composition and context lengths change the computation and KV-cache access costs~\cite{agrawal2024vidur,ye2025flashinfer,zhang2024llmcompass}.
 We therefore fit a model using the four workload statistics shown in Fig.~\ref{fig:token-allocator-workflow}: prefill token count $p$, decode token count $d_k$, total context length accessed by decode requests $K_k^{\mathrm{dec}}$, and total prefill attention work $A_k^{\mathrm{pre}}(p)$.
 The model is
 \begin{equation}
@@ -41,7 +41,7 @@ The model is
   \end{aligned}
   \label{eq:step-time-model}
 \end{equation}
-\textcolor{blue}{We fit all five coefficients $\alpha_1,\ldots,\alpha_5$ online using measurements from previously executed steps under the deployed model and hardware configuration, with the four workload statistics as inputs and measured step duration as the target.}
+We fit all five coefficients $\alpha_1,\ldots,\alpha_5$ online using measurements from previously executed steps under the deployed model and hardware configuration, with the four workload statistics as inputs and measured step duration as the target.
 They are learned model coefficients, not manually chosen scheduling hyperparameters.
 The intercept captures fixed runtime cost, while the remaining terms account for token processing and context-dependent attention work.
 
@@ -49,7 +49,7 @@ The inputs come from the decode state and candidate chunks in Fig.~\ref{fig:toke
 The active decode requests determine $d_k$ and $K_k^{\mathrm{dec}}$.
 For prefill, a chunk of $c_{i,k}$ tokens following an already-computed prefix of $H_{i,k}$ tokens contributes approximately $c_{i,k}(H_{i,k}+c_{i,k}/2)$ attention work.
 Summing this quantity over the chunks included in $p$ gives $A_k^{\mathrm{pre}}(p)$.
-Thus, a chunk following a longer prefix can require more time even at the same token count.
+Thus, a chunk following a longer prefix can require more time even at the same token count~\cite{qiao2026conserve}.
 At runtime, the allocator substitutes these statistics into the fitted model as it considers different chunk sizes.
 With the decode workload and candidate order fixed, only $p$ varies in Eq.~\ref{eq:model-guided-prefill-budget}.
 
