@@ -2,7 +2,7 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-In this paper, we propose \tango{} to improve multi-SLO LLM serving through joint temporal and spatial scheduling.
-Its dispatcher uses phase-aware deadlines to guide request admission and preemption according to heterogeneous TTFT and TPOT requirements.
-Its allocator uses predicted step time and remaining decode slack to allocate prefill tokens, limiting mixed prefill/decode interference.
-The evaluation results show that \tango{} improves overall SLO attainment by 58.72\% and achieves $1.52\times$ the goodput on average compared with state-of-the-art systems.
+In this paper, we propose \tango{} to improve multi-SLO LLM serving through joint temporal request dispatching and spatial token allocation.
+\tango's deadline-aware dispatcher uses phase-aware deadlines to guide request admission and preemption according to heterogeneous TTFT and TPOT requirements.
+\tango's step-time-model-guided token allocator uses predicted step time and remaining decode slack to allocate prefill tokens, limiting mixed prefill/decode interference.
+The evaluation results show that \tango{} improves overall SLO attainment by 58.72\% and achieves $1.52\times$ the goodput on average compared with state-of-the-art LLM serving systems.
