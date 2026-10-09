@@ -39,7 +39,7 @@ Both queueing and chunk execution consume this budget; scheduling another chunk 
 Once the first token is returned, the deadline advances with output progress.
 Each returned token establishes the next target by adding the TPOT SLO to its timestamp.
 For $r_3$ in Fig.~\ref{fig:phase-aware-deadlines}, a TPOT SLO of $100$~ms and an output timestamp advancing from $0$ to $20$~ms move the deadline from $100$ to $120$~ms.
-These rolling deadlines translate the TPOT objective into per-token targets; meeting them is sufficient to satisfy the average-TPOT objective in Eq.~\ref{eq:latency-metrics}.
+These rolling deadlines translate the TPOT objective into per-token targets; meeting them is sufficient to satisfy the average-TPOT objective in Section~\ref{sec:multi-slo-llm-serving}.
 
 At each iteration boundary, the dispatcher sorts waiting requests by increasing $D_i$ and considers them for admission in order.
 Ties are broken by arrival time and then request identifier.

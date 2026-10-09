@@ -39,7 +39,7 @@ For example, $r_1$ in Fig.~\ref{fig:phase-aware-deadlines} arrives at $0$~ms wit
 When the first token is returned, the active objective switches to TPOT.
 Each subsequent output token updates the timestamp in Eq.~\ref{eq:phase-aware-deadline} and establishes a new next-token deadline.
 For $r_3$ with a TPOT SLO of $100$~ms, advancing the latest output timestamp from $0$ to $20$~ms moves its deadline from $100$ to $120$~ms.
-This rolling deadline provides a local target for each inter-token interval; meeting these targets is sufficient to satisfy the average-TPOT objective in Eq.~\ref{eq:latency-metrics}.
+This rolling deadline provides a local target for each inter-token interval; meeting these targets is sufficient to satisfy the average-TPOT objective in Section~\ref{sec:multi-slo-llm-serving}.
 
 At each iteration boundary, the dispatcher orders waiting requests by increasing $D_i$ and admits them in earliest-deadline-first (EDF) order.
 Arrival time breaks deadline ties, with request identifiers providing deterministic ordering when both values are equal.
