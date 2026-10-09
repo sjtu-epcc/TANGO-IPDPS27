@@ -14,7 +14,8 @@ SLO-aware temporal schedulers used latency requirements to decide which requests
 SOLA adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for both TTFT and TPOT.
 However, its shared TTFT and average-TPOT targets could not directly express heterogeneous request SLOs, and its token budgeting did not explicitly enforce individual next-token deadlines.
 For requests with heterogeneous SLOs, JITServe used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide serving bandwidth allocation.
-However, overestimating output lengths could reserve excess capacity, while underestimating them could leave insufficient bandwidth to meet request SLOs.
+\textcolor{red}{However, overestimating output lengths could reserve excess capacity, while underestimating them could leave insufficient bandwidth to meet request SLOs.}
+
 
 \textbf{Spatial Prefill--Decode Scheduling.}
 Existing approaches mitigated prefill--decode interference through resource separation or control of batch workloads.

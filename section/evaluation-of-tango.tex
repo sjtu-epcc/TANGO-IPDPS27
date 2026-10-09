@@ -114,13 +114,14 @@ These results show that deadline-aware request ordering and execution-time-aware
 
 In this subsection, we evaluate the prediction accuracy of the step-time model in Eq.~\ref{eq:step-time-model}.
 For each deployment configuration, we compare the predicted duration $\widehat{L}$ with the measured duration $L$ using its fitted coefficients.
-The evaluated steps cover decode-only and mixed execution across the three workloads at low and high loads.
-We evaluate 32,542, 30,988, and 21,952 steps for the 8B, 14B, and 32B models, respectively.
+The evaluated steps cover decode-only and mixed execution.
+We evaluate \textcolor{blue}{16,150}, \textcolor{blue}{15,542}, and \textcolor{blue}{13,168} steps for the 8B, 14B, and 32B models, respectively.
+\textcolor{blue}{For each model, these steps are aggregated from a single measured run of \tango{} on each of the three workloads in the main experiment in Section~\ref{subsec:slo-attainment-and-goodput}.}
 We measure prediction error as the absolute percentage error $100\lvert\widehat{L}-L\rvert/L$.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.9\columnwidth]{figures/evaluation/model_accuracy_combined_2x2.pdf}
+  \includegraphics[width=0.9\columnwidth]{figures/evaluation/new_model_accuracy_combined_2x2.pdf}
   \caption{Step-time prediction accuracy for the three models. Diagonal dashed lines denote perfect predictions; color indicates local step counts (log scale). The bottom-right panel shows absolute percentage error CDFs.}
   \label{fig:model-accuracy-combined}
   \vspace{-3mm}
@@ -129,9 +130,9 @@ We measure prediction error as the absolute percentage error $100\lvert\widehat{
 Fig.~\ref{fig:model-accuracy-combined} shows predicted versus measured step times and absolute percentage error CDFs (bottom right).
 In the first three panels, color indicates the number of steps near each plotted location on a logarithmic scale, with purple indicating fewer steps and yellow indicating more.
 As observed, predictions closely match measurements across all three models.
-The mean absolute percentage errors (MAPEs) are 1.83\%, 1.62\%, and 1.70\% for the 8B, 14B, and 32B models, respectively.
-The fractions of steps with errors below 5\% are 90.59\%, 93.70\%, and 91.38\%, respectively.
-At 10\%, the corresponding fractions reach 98.68\%, 99.05\%, and 98.36\%.
+The mean absolute percentage errors (MAPEs) are \textcolor{blue}{1.84\%}, \textcolor{blue}{1.58\%}, and \textcolor{blue}{1.60\%} for the 8B, 14B, and 32B models, respectively.
+The fractions of steps with errors below 5\% are \textcolor{blue}{90.65\%}, \textcolor{blue}{93.85\%}, and \textcolor{blue}{92.12\%}, respectively.
+At 10\%, the corresponding fractions reach \textcolor{blue}{98.70\%}, \textcolor{blue}{99.13\%}, and \textcolor{blue}{98.57\%}.
 
 \subsection{Sensitivity to the Sending Rate}
 \label{subsec:sensitivity-sending-rate}
@@ -154,6 +155,8 @@ All systems use the same request sequence, arrival schedule, and SLO targets at 
 Fig.~\ref{fig:multi-qps-goodput-slo} shows the goodput and overall SLO attainment of \tango{} and the baselines.
 At $\lambda_{90}$, without additional stress, all four systems achieve high SLO attainment and similar goodput, with \tango{} still leading in both metrics.
 As the sending rate increases, both metrics generally decline, but \tango{} maintains higher SLO attainment and goodput, showing a more pronounced advantage under pressure.
+\textcolor{blue}{At $1.35\lambda_{90}$, \tango{} achieves its largest relative improvement in overall SLO attainment over vLLM, reaching 59.48\%; the improvements over SOLA and JITServe peak at 46.91\% and 32.65\% at $1.25\lambda_{90}$ and $1.30\lambda_{90}$, respectively.
+For goodput, the largest relative improvement over vLLM is 49.64\% at $1.40\lambda_{90}$, while those over SOLA and JITServe reach 40.93\% and 20.67\%, respectively, both at $1.30\lambda_{90}$.}
 
 These results are consistent with \tango{}'s coordinated control of request ordering and step duration.
 As the sending rate increases, more requests compete for execution, making queueing delay and prefill/decode interference harder to control.
@@ -166,8 +169,8 @@ This coordination helps \tango{} preserve higher SLO attainment and goodput unde
 
 In this subsection, we evaluate \tango{} under different SLO settings.
 For Qwen3-14B on the chatbot workload, we scale both TTFT and TPOT targets by $\eta\in\{0.8,0.9,1.1,1.2\}$.
-We also combine requests from different trace types into a mixed workload.
-All requests of the same trace type share one fixed TTFT/TPOT SLO configuration, while different types can use different configurations.
+\textcolor{blue}{We also construct a mixed workload by combining requests from the chatbot, mathematical-reasoning, and software-agent traces described in Section~\ref{subsec:motivation-trace} into a single request stream.}
+\textcolor{blue}{Each trace type is assigned a distinct SLO class, and all requests of that type share the same TTFT/TPOT SLO configuration of the assigned class.}
 All systems use identical requests and arrivals within each setting.
 
 \begin{figure}[t]
@@ -181,8 +184,11 @@ All systems use identical requests and arrivals within each setting.
 Fig.~\ref{fig:multi-trace-goodput-slo} shows that \tango{} achieves the highest overall SLO attainment and goodput in all five settings.
 Across the four SLO scaling factors, the average relative improvements in SLO attainment are 38.23\%, 35.16\%, and 27.38\% compared with vLLM, SOLA, and JITServe, respectively.
 The corresponding average goodput ratios are $1.29\times$, $1.28\times$, and $1.16\times$.
+\textcolor{blue}{\tango{} maintains an advantage under relaxed SLOs, and this advantage generally grows as SLOs tighten, because its coordinated scheduling better limits queueing delay and prefill/decode interference within shrinking latency budgets.}
 
 For the mixed trace, \tango{} increases SLO attainment by 120.27\%, 165.04\%, and 32.25\% over vLLM, SOLA, and JITServe, respectively, with corresponding goodput ratios of $2.02\times$, $2.47\times$, and $1.19\times$.
+\textcolor{blue}{\tango{}'s advantage is more pronounced on the mixed trace, where differences in prompt lengths, generation lengths, and context sizes increase interference among requests with different SLO requirements.
+By coordinating deadline-aware request prioritization with step-time-guided token allocation, \tango{} limits this interference and helps more requests meet their latency targets.}
 These results show that deadline-aware request ordering and step-time-guided token allocation remain effective under both SLO scaling and mixed workloads.
 
 \subsection{Scalability with Larger Models and More GPUs}
@@ -204,22 +210,20 @@ We evaluate them on the chatbot, mathematical-reasoning, and software-agent work
 Fig.~\ref{fig:more-model-combined} shows the overall SLO attainment and goodput of \tango{} and the baselines.
 As observed, \tango{} achieves the highest values for both metrics in all six model--workload combinations.
 The average relative improvements in SLO attainment are 45.07\%, 33.92\%, and 41.49\% compared with vLLM, SOLA, and JITServe, respectively.
-The corresponding average goodput ratios are $1.40\times$, $1.35\times$, and $1.40\times$.
-The above results demonstrate that \tango{} remains effective when scaling to larger dense and MoE models, as well as deployments with more GPUs and greater aggregate GPU memory.
+The corresponding average goodput ratios are $1.40\times$, $1.35\times$, and $1.40\times$\textcolor{blue}{, which are broadly comparable to those in Section~\ref{subsec:slo-attainment-and-goodput},}
+demonstrating that \tango{} remains effective when scaling to larger dense and MoE models, as well as deployments with more GPUs and greater aggregate GPU memory.
 
 \subsection{Overhead of TANGO}
 \label{subsec:overhead-of-tango}
 
 \textbf{Time Overhead:}
-It mainly comes from deadline maintenance, request ordering, and preemption decisions in the dispatcher, and decode-deadline selection, step-time prediction, and prefill-budget search in the allocator.
-Both components run on the CPU before model execution and reuse vLLM's existing executor.
-The closed-form step-time model requires only a few arithmetic operations for each prediction.
-For a scheduling step with thousands of candidate requests, the estimated CPU time for deadline maintenance and decode-deadline selection is less than 0.5\,ms in total, while step-time prediction and budget search take less than 0.1\,ms.
-Since model execution typically takes tens to hundreds of milliseconds per step, this estimated overhead is usually below 1\% of the step latency.
+\textcolor{blue}{The time overhead consists of CPU processing in two components: the dispatcher and the allocator.
+The dispatcher maintains request deadlines, orders requests, and makes preemption decisions.
+The allocator selects the target decode deadline, predicts step duration using the closed-form model, and searches for the prefill token budget.
+For scheduling steps with thousands of candidate requests, their combined overhead is estimated to be less than 0.6\,ms per step, typically below 1\% of the step latency and thus negligible.}
 
 \textbf{Memory Overhead:}
-\tango{} stores additional scheduling state as CPU-side metadata, including request SLOs, arrival and latest-token timestamps, generated-token counts, effective deadlines, and progress information.
-A compact representation is estimated to require approximately 96 bytes of persistent metadata per request, corresponding to about 240\,KB for 2,500 resident requests.
-Moreover, the allocator stores the fitted step-time coefficients and a few configuration values, with a total footprint below 128 bytes.
-Its temporary decode-deadline list requires about 16 bytes per active decode request.
-The per-request state scales linearly with the request count and is negligible compared with the memory occupied by model weights and KV caches.
+\textcolor{blue}{\tango{} stores additional scheduling state as CPU-side metadata, including request SLOs, timestamps, token counts, effective deadlines, and progress information.
+This metadata adds an estimated 96 bytes of CPU memory per request.
+The allocator's fitted step-time coefficients and configuration values are shared across requests and occupy less than 128 bytes in total.
+The 96-byte metadata typically accounts for less than 0.01\% of the megabyte-scale per-request KV cache, making the additional memory overhead negligible.}

@@ -41,7 +41,7 @@ The model is
   \end{aligned}
   \label{eq:step-time-model}
 \end{equation}
-We obtain all five coefficients $\alpha_1,\ldots,\alpha_5$ by fitting offline profiling samples from the deployed model and hardware configuration, with the four workload statistics as inputs and measured step duration as the target.
+\textcolor{blue}{We fit all five coefficients $\alpha_1,\ldots,\alpha_5$ online using measurements from previously executed steps under the deployed model and hardware configuration, with the four workload statistics as inputs and measured step duration as the target.}
 They are learned model coefficients, not manually chosen scheduling hyperparameters.
 The intercept captures fixed runtime cost, while the remaining terms account for token processing and context-dependent attention work.
 
