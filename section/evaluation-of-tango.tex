@@ -3,13 +3,16 @@
 \label{sec:evaluation-of-tango}
 
 In this section, we first evaluate the SLO attainment and goodput of \tango{} across different models and multi-SLO workloads.
-We then investigate the effectiveness of its two scheduling components, validate the step-time model, examine sensitivity to sending rates and SLO settings, and evaluate scalability with larger models and GPU deployments.
+We then investigate the effectiveness of \tango{}'s two scheduling components, 
+% validate the step-time model, examine sensitivity to sending rates and SLO settings, 
+and evaluate its scalability.
+% with larger models and GPU deployments.
 %  and analyze scheduling overhead.
 
 \subsection{Evaluation Setup}
 \label{subsec:evaluation-setup}
 
-Table~\ref{tab:motivation-setup} shows our experimental platform.
+Table~\ref{tab:motivation-setup} shows our setup.
 The chatbot, mathematical-reasoning, and software-agent workloads are described in Section~\ref{subsec:motivation-trace}.
 We test the Llama-3.1-8B~\cite{grattafiori2024llama3}, Qwen3-14B, and Qwen3-32B~\cite{yang2025qwen3} (8B, 14B, and 32B for short).
 Based on the parameter size, we use 1, 2, and 4 NVIDIA RTX 6000 Ada GPUs to deploy them, respectively.
@@ -24,7 +27,7 @@ vLLM-Colocated employs FCFS admission and a fixed maximum per-step token budget.
 %  without differentiating request-specific TTFT and TPOT objectives.
 SOLA adjusts both request execution order and iteration workload according to request and system states to improve SLO attainment.
 JITServe estimates uncertain request characteristics and allocates serving bandwidth to individual requests, while grouping compatible requests to improve batching efficiency.
-Since SOLA's source code is not publicly available, we reimplement SOLA's scheduling mechanisms on top of vLLM 0.17.0~\cite{vllm2026optimization}.
+Since SOLA's codes are not publicly available, we reimplement SOLA's scheduling mechanisms on top of vLLM~\cite{vllm2026optimization}.%0.17.0
 %and JITServe uses a different vLLM version
 % This allows all systems to be compared on the same vLLM runtime.
 
@@ -37,7 +40,7 @@ Goodput measures the number of such requests completed per second.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/evaluation/new_experiment_combined_pd.pdf}
+  \includegraphics[width=0.98\columnwidth]{figures/evaluation/new_experiment_combined_pd.pdf}
   \caption{The overall SLO attainment and goodput of \tango{}, vLLM-Colocated, vLLM-Disaggregated, SOLA, and JITServe. Purple crosses indicate that vLLM-Disaggregated cannot run in the single-GPU 8B configuration.}
   \label{fig:slo-attainment-and-goodput}
   \vspace{-3mm}
@@ -71,14 +74,6 @@ This coordination addresses the TTFT violations from queueing and TPOT violation
 \subsection{Effectiveness of Temporal Request Dispatcher}
 \label{subsec:effectiveness-temporal-scheduling}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/evaluation/ablation_goodput_slo.pdf}
-  \caption{The goodput and overall SLO attainment of \tango{}'s variants normalized to \tango{}, represented by bars and curves, respectively.}
-  \label{fig:ablation-goodput-slo}
-  \vspace{-3mm}
-\end{figure}
-
 In this subsection, we show the performance of \tango{}-WOT, a variant of \tango{} that disables the temporal request dispatcher.
 It restores vLLM's default admission and preemption policies, including FCFS request admission, while retaining the \allocator{}.
 All other experimental conditions are kept the same as in Section~\ref{subsec:slo-attainment-and-goodput}.
@@ -91,6 +86,14 @@ The default preemption policy also does not compare active deadlines when decidi
 
 Although the retained allocator regulates the execution time of mixed batches, it cannot by itself give earlier admission to urgent waiting requests.
 Consequently, controlling step duration alone is insufficient to recover the SLO attainment and goodput of the complete system.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/ablation_goodput_slo.pdf}
+  \caption{The goodput and overall SLO attainment of \tango{}'s variants normalized to \tango{}, represented by bars and curves, respectively.}
+  \label{fig:ablation-goodput-slo}
+  \vspace{-3mm}
+\end{figure}
 
 \subsection{Effectiveness of Spatial Scheduling}
 \label{subsec:effectiveness-spatial-scheduling}
@@ -121,7 +124,7 @@ We measure prediction error as the absolute percentage error $100\lvert\widehat{
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.9\columnwidth]{figures/evaluation/new_model_accuracy_combined_2x2.pdf}
+  \includegraphics[width=0.90\columnwidth]{figures/evaluation/new_model_accuracy_combined_2x2.pdf}
   \caption{Step-time prediction accuracy for the three models. Diagonal dashed lines denote perfect predictions; color indicates local step counts (log scale). The bottom-right panel shows absolute percentage error CDFs.}
   \label{fig:model-accuracy-combined}
   \vspace{-3mm}
@@ -132,7 +135,7 @@ In the first three panels, color indicates the number of steps near each plotted
 As observed, predictions closely match measurements across all three models.
 The mean absolute percentage errors (MAPEs) are 1.84\%, 1.58\%, and 1.60\% for the 8B, 14B, and 32B models, respectively.
 The fractions of steps with errors below 5\% are 90.65\%, 93.85\%, and 92.12\%, respectively.
-At 10\%, the corresponding fractions reach 98.70\%, 99.13\%, and 98.57\%.
+% At 10\%, the corresponding fractions reach 98.70\%, 99.13\%, and 98.57\%.
 
 \subsection{Sensitivity to the Sending Rate}
 \label{subsec:sensitivity-sending-rate}
@@ -140,16 +143,9 @@ At 10\%, the corresponding fractions reach 98.70\%, 99.13\%, and 98.57\%.
 In this subsection, we investigate performance of \tango{} under different sending rates.
 The overall comparison in Section~\ref{subsec:slo-attainment-and-goodput} uses $1.2\lambda_{90}$ to evaluate serving performance under pressure.
 Here, we replay the trace at $\alpha\lambda_{90}$, varying $\alpha$ from 1.0 to 1.4 in steps of 0.05.
-We use Qwen3-14B with chatbot workload for this experiment, and other scenarios show similar results.
-All systems use the same request sequence, arrival schedule, and SLO targets at each sending rate.
+We use Qwen3-14B with chatbot for this experiment, and other scenarios show similar results.
+% All systems use the same request sequence, arrival schedule, and SLO targets at each sending rate.
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/evaluation/multi_qps_goodput_slo.pdf}
-  \caption{The goodput and overall SLO attainment of \tango{}, vLLM, SOLA, and JITServe under different sending rates for Qwen3-14B on the chatbot workload. The load multiplier is relative to $\lambda_{90}$.}
-  \label{fig:multi-qps-goodput-slo}
-  \vspace{-3mm}
-\end{figure}
 
 
 Fig.~\ref{fig:multi-qps-goodput-slo} shows the goodput and overall SLO attainment of \tango{} and the baselines.
@@ -172,7 +168,13 @@ For Qwen3-14B on the chatbot workload, we scale both TTFT and TPOT targets by $\
 We also construct a mixed workload by combining requests from the chatbot, mathematical-reasoning, and software-agent traces described in Section~\ref{subsec:motivation-trace} into a single request stream.
 Each trace type is assigned a distinct SLO class, and all requests of that type share the same TTFT/TPOT SLO configuration of the assigned class.
 All systems use identical requests and arrivals within each setting.
-
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/evaluation/multi_qps_goodput_slo.pdf}
+  \caption{The goodput and overall SLO attainment of \tango{}, vLLM, SOLA, and JITServe under different sending rates for Qwen3-14B on the chatbot workload. The load multiplier is relative to $\lambda_{90}$.}
+  \label{fig:multi-qps-goodput-slo}
+  \vspace{-3mm}
+\end{figure}
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/evaluation/multi_trace_goodput_slo.pdf}
