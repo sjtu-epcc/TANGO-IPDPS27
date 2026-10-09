@@ -72,10 +72,10 @@ However, always using this deadline can leave too little time for prefills appro
 We therefore adapt the selected deadline percentile according to the relative urgency of TTFT and TPOT.
 A later percentile permits a longer step and more prefill work, while relaxing the target for decode requests with earlier deadlines.
 
-To compare urgency across different SLOs, we divide each request's remaining deadline slack by its corresponding TTFT or TPOT budget.
+To compare urgency across SLOs, we divide each request's remaining deadline slack by its TTFT or TPOT budget.
 The allocator takes the minimum fraction among requests awaiting their first token in the running set and waiting queue, and the minimum among active decode requests.
 When the TTFT minimum is smaller and the TPOT minimum is positive, the ratio of the TTFT minimum to the TPOT minimum determines the selected percentile: as this ratio decreases from one to zero, the percentile increases linearly from the earliest toward the latest decode deadline.
-The ratio is clipped to this range, and the percentile is recomputed at every step.
+The ratio is clipped to this range, and the percentile is recomputed each step.
 Otherwise, the allocator retains the earliest decode deadline.
 
 The resulting $\Delta_k$ supplies the time constraint in Eq.~\ref{eq:model-guided-prefill-budget}.

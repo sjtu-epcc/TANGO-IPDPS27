@@ -20,6 +20,7 @@ As analyzed in Section~\ref{subsec:motivation-underlying-reasons}, arrival order
 The active objective also changes as inference progresses: a request must first produce its initial token within the TTFT budget, and then sustain token generation within the TPOT budget.
 We express both objectives as a deadline for the next required output, as illustrated in Fig.~\ref{fig:phase-aware-deadlines}.
 Let $q_i$ denote the number of output tokens already returned by request $r_i$.
+$t_{i,q_i}$ is the latest output timestamp, denoted by $t_{\mathrm{last}}$ in Fig.~\ref{fig:phase-aware-deadlines}.
 Using the timestamps and SLOs defined in Section~\ref{sec:multi-slo-llm-serving}, its deadline is
 \begin{equation}
   D_i =
@@ -29,10 +30,9 @@ Using the timestamps and SLOs defined in Section~\ref{sec:multi-slo-llm-serving}
   \end{cases}
   \label{eq:phase-aware-deadline}
 \end{equation}
-where $t_{i,q_i}$ is the latest output timestamp, denoted by $t_{\mathrm{last}}$ in Fig.~\ref{fig:phase-aware-deadlines}.
 
 Before the first token, the deadline is fixed by the arrival time and TTFT SLO.
-Chunked prefill splits the execution across iterations, but all chunks contribute to the same first-token latency and therefore share this deadline.
+Chunked prefill splits the execution across iterations, but all chunks contribute to the same first-token latency and share the deadline.
 For $r_1$ in Fig.~\ref{fig:phase-aware-deadlines}, arrival at $0$~ms and a TTFT SLO of $180$~ms give $D_1=180$~ms throughout prefill.
 Both queueing and chunk execution consume this budget; scheduling another chunk does not renew it.
 
@@ -73,4 +73,4 @@ Time spent waiting for resumption continues to consume its latency budget.
 
 For the example in Fig.~\ref{fig:deadline-admission-preemption}, $r_4$ ($D_4=60$~ms) precedes $r_5$ ($D_5=200$~ms), while $r_1$ has the latest running deadline of $180$~ms.
 Since $60<180$, the dispatcher preempts $r_1$ and admits $r_4$ after retrying KV allocation; $r_2$ and $r_3$ remain running.
-The requeued $r_1$ retains its $180$~ms deadline and therefore returns ahead of $r_5$, as shown in the updated waiting queue.
+The requeued $r_1$ retains its $180$~ms deadline and returns ahead of $r_5$, as shown in the updated waiting queue.

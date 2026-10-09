@@ -7,7 +7,7 @@ These applications impose distinct latency requirements~\cite{sun2024llumnix,goe
 For example, interactive chat prioritizes fast first token generation~\cite{goel2026qoserve}, while real-time translation~\cite{zhang2026jitserve} requires short latency between consecutive output tokens.
 % These applications impose distinct performance requirements.
 % Some requests are sensitive to the latency before the first output token, as in interactive chat, whereas others are sensitive to the latency between consecutive output tokens, as in real-time translation.
-These latency requirements correspond to two phases of LLM inference. During \emph{prefill}, the model processes the prompt and generates the first output token, measured by the time to first token (TTFT).
+These latency requirements correspond to two phases of LLM inference. During \emph{prefill}, model processes prompt and generates the first output token, measured by the time to first token (TTFT).
 During autoregressive \emph{decode}, it generates subsequent tokens one at a time, measured by the time per output token (TPOT)~\cite{agrawal2024sarathi,zhong2024distserve}.
 These two phases can execute on disaggregated GPU pools or colocate on the same GPUs~\cite{patel2024splitwise,qin2025mooncake,agrawal2024sarathi}.
 % Online serving systems should therefore improve the goodput while meeting the application-specific TTFT and TPOT Service-Level Objectives (SLOs).

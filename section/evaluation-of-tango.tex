@@ -137,10 +137,10 @@ At 10\%, the corresponding fractions reach 98.70\%, 99.13\%, and 98.57\%.
 \subsection{Sensitivity to the Sending Rate}
 \label{subsec:sensitivity-sending-rate}
 
-In this subsection, we investigate the performance of \tango{} under different sending rates.
+In this subsection, we investigate performance of \tango{} under different sending rates.
 The overall comparison in Section~\ref{subsec:slo-attainment-and-goodput} uses $1.2\lambda_{90}$ to evaluate serving performance under pressure.
-Here, we vary the load multiplier $\alpha$ from 1.0 to 1.4 in increments of 0.05 and replay the trace at $\alpha\lambda_{90}$.
-We use Qwen3-14B with the chatbot workload for this experiment, and other scenarios show similar results.
+Here, we replay the trace at $\alpha\lambda_{90}$, varying $\alpha$ from 1.0 to 1.4 in steps of 0.05.
+We use Qwen3-14B with chatbot workload for this experiment, and other scenarios show similar results.
 All systems use the same request sequence, arrival schedule, and SLO targets at each sending rate.
 
 \begin{figure}[t]
@@ -225,5 +225,5 @@ For scheduling steps with thousands of candidate requests, their combined overhe
 \textbf{Memory Overhead:}
 \tango{} stores additional scheduling state as CPU-side metadata, including request SLOs, timestamps, token counts, effective deadlines, and progress information.
 This metadata adds an estimated 96 bytes of CPU memory per request.
-The allocator's fitted step-time coefficients and configuration values are shared across requests and occupy less than 128 bytes in total.
+The allocator's fitted step-time coefficients and configuration values are shared across requests and occupy less than 128 bytes.
 The 96-byte metadata typically accounts for less than 0.01\% of the megabyte-scale per-request KV cache, making the additional memory overhead negligible.

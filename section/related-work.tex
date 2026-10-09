@@ -4,16 +4,16 @@
 
 \textbf{SLO-Agnostic LLM Serving.}
 Existing LLM serving systems improved throughput and latency through efficient batching and memory management~\cite{sheng2024slora,shi2026elora,prabhu2025vattention}.
-Orca~\cite{yu2022orca} introduced iteration-level scheduling, which allowed requests to enter and leave a batch between decoding iterations.
-vLLM~\cite{kwon2023vllm} introduced PagedAttention to reduce KV-cache fragmentation and support flexible memory sharing.
-SGLang~\cite{zheng2024sglang} exploited prefix reuse through RadixAttention and optimized the execution of structured language model programs.
+Orca~\cite{yu2022orca} introduced iteration-level scheduling, which allowed requests to enter and leave a batch between iterations.
+vLLM~\cite{kwon2023vllm} introduced PagedAttention to reduce KV-cache fragmentation and support memory sharing.
+SGLang~\cite{zheng2024sglang} exploited prefix reuse through RadixAttention and optimized execution of structured language model programs.
 However, these works optimized batching and memory efficiency without explicitly accounting for each request's TTFT and TPOT objectives in scheduling.
 
 \textbf{Temporal Request Scheduling.}
 SLO-aware temporal schedulers used latency requirements to decide which requests received service~\cite{sun2024llumnix,goel2026qoserve}.
-SOLA~\cite{hong2025sola} adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for both TTFT and TPOT.
+SOLA~\cite{hong2025sola} adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for TTFT and TPOT.
 However, its shared TTFT and average-TPOT targets could not directly express heterogeneous request SLOs, and its token budgeting did not explicitly enforce individual next-token deadlines.
-For requests with heterogeneous SLOs, JITServe~\cite{zhang2026jitserve} used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide serving bandwidth allocation.
+For requests with heterogeneous SLOs, JITServe~\cite{zhang2026jitserve} used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide bandwidth allocation.
 \textcolor{blue}{However, its bandwidth allocation relied heavily on a black-box output-length predictor, making scheduling sensitive to prediction errors. Overall, these systems did not explicitly address fine-grained spatial scheduling of prefill and decode workloads within each iteration under heterogeneous TTFT and TPOT constraints.}
 
 
