@@ -14,7 +14,7 @@ SLO-aware temporal schedulers used latency requirements to decide which requests
 SOLA~\cite{hong2025sola} adjusted request priorities and iteration workloads based on request progress and system state to improve SLO attainment for TTFT and TPOT.
 However, its shared TTFT and average-TPOT targets could not directly express heterogeneous request SLOs, and its token budgeting did not explicitly enforce individual next-token deadlines.
 For requests with heterogeneous SLOs, JITServe~\cite{zhang2026jitserve} used a quantile regression forest model to predict output-length upper bounds and progressively refined these estimates to guide bandwidth allocation.
-\textcolor{blue}{However, its bandwidth allocation relied heavily on a black-box output-length predictor, making scheduling sensitive to prediction errors. Overall, these systems did not explicitly address fine-grained spatial scheduling of prefill and decode workloads within each iteration under heterogeneous TTFT and TPOT constraints.}
+However, its bandwidth allocation relied heavily on a black-box output-length predictor, making scheduling sensitive to prediction errors. Overall, these systems did not explicitly address fine-grained spatial scheduling of prefill and decode workloads within each iteration under heterogeneous TTFT and TPOT constraints.
 
 
 
